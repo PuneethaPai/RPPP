@@ -1,0 +1,7 @@
+md5: 44a89f376de75bd4ff21feb31154d946
+outs:
+- md5: 8af5236b0006f91472b3f1a0565aa759
+  path: remote://remote-wfs/rML-raw-data.csv
+  cache: true
+  metric: false
+  persist: false
