@@ -1,4 +1,4 @@
-md5: ab312f7ee9df09d0a43f6d7604160956
+md5: 54830027b4c1e70ae8234a3a80dff332
 cmd: python3 training.py
 deps:
 - md5: e16f53594a19465f4ebef52f285a1640
@@ -10,8 +10,13 @@ deps:
 - md5: 8d2aba8fc29f3ea7c02ed1a56e0bc662
   path: training.py
 outs:
-- md5: 32a0d6e0c5e805e7d3cbb00e8b912e5f.dir
+- md5: ba9e825d86aee393ae8ab2dfeca86279.dir
   path: models
   cache: true
+  metric: false
+  persist: true
+- md5: 8a7c214835412a2fe3cef92d8394f4f1
+  path: params.yml
+  cache: false
   metric: false
   persist: true
