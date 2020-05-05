@@ -78,6 +78,10 @@ def process(chunk):
         ["flair"], axis=1
     )
 
+    df = df[df['title'] != '[deleted by user]']
+    df = df[df['body'] != '[deleted]']
+    df = df[df['body'] != '[removed]']
+
     df["title_and_body"] = (df["title"] + " " + df["body"]).astype(str)
 
     return df
