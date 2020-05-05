@@ -1,13 +1,28 @@
-import pandas as pd
 import gcsfs
 import os
+import pandas as pd
 from sklearn.model_selection import train_test_split
+import yaml
+
+with open(r"./general_params.yaml") as f:
+    params = yaml.safe_load(f)
+
+CHUNK_SIZE = params["chunk_size"]
+TARGET_LABEL = params["target_col"]
 
 PROJECT_NAME = "talos-project"
 GCLOUD_CRED_ENV_VAR = "GOOGLE_APPLICATION_CREDENTIALS"
-CHUNK_SIZE = 5000
-TARGET_LABEL = "is_top_decile"
-
+UNIQUE_FLAIRS = [
+    "Discussion",
+    "Project",
+    "Research",
+    "None",
+    "News",
+    "Shameless Self Promo",
+    "Inaccurate",
+    "Misleading",
+    "Clickbait",
+]
 
 raw_df_path = "rML-raw-data.csv"
 train_df_path = "rML-train.csv"
@@ -59,7 +74,7 @@ def process(chunk):
     df = df.fillna({"body": "", "flair": "None", "body_len": 0})
     df["flair"] = ["Discussion" if (x == "Discusssion") else x for x in df["flair"]]
 
-    df = pd.concat([df, pd.get_dummies(df["flair"], prefix="flair")], axis=1).drop(
+    df = pd.concat([df, pd.get_dummies(df["flair"], prefix="flair", columns=UNIQUE_FLAIRS)], axis=1).drop(
         ["flair"], axis=1
     )
 
@@ -69,6 +84,7 @@ def process(chunk):
 
 
 def save_data(train_chunk, train_f, test_chunk, test_f, i):
+    # TODO: Saving is kinda slow now. Try to improve performance
     # We want to write the headers only once
     header = True if i == 0 else False
 
