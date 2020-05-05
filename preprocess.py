@@ -78,7 +78,7 @@ def process(chunk):
         ["flair"], axis=1
     )
 
-    df["title_and_body"] = df["title"] + " " + df["body"]
+    df["title_and_body"] = (df["title"] + " " + df["body"]).astype(str)
 
     return df
 
