@@ -4,7 +4,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 import yaml
 
-with open(r"./general_params.yaml") as f:
+with open(r"./general_params.yml") as f:
     params = yaml.safe_load(f)
 
 CHUNK_SIZE = params["chunk_size"]

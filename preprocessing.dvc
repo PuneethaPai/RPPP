@@ -1,17 +1,19 @@
-md5: 2f901607832733d93f438c4022a5620a
+md5: 603e1ce97a8130765dd68a9f2f576007
 cmd: python3 preprocess.py
 deps:
+- md5: fd72d874a18159ce4a7855eb23ce4165
+  path: general_params.yml
 - md5: fc815725495c8b6b057b969076bca149
   path: remote://remote-wfs/rML-raw-data.csv
-- md5: 38ca18a7673b7df3e948dadf70c7f8be
+- md5: 67a2f9219159b9ed536c6dc648e9fbab
   path: preprocess.py
 outs:
-- md5: 75e6b57cbba3434936dfe2e726aa04a2
+- md5: 51ac6cbe17cff8312696023a21cd67ad
   path: remote://remote-wfs/rML-test.csv
   cache: true
   metric: false
   persist: false
-- md5: bd16a3c6880f744d650bf9443d766760
+- md5: e16f53594a19465f4ebef52f285a1640
   path: remote://remote-wfs/rML-train.csv
   cache: true
   metric: false

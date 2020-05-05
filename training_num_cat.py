@@ -39,28 +39,22 @@ CAT_COL_NAMES = [
 ]
 CHUNK_SIZE = params["chunk_size"]
 TARGET_LABEL = params["target_col"]
-MODEL_TYPE_TEXT = "model_text"
-MODEL_TYPE_NUM_CAT = "model_num_cat"
-MODEL_TYPE_OTHER = ""
-MODEL_TYPE = (
-    MODEL_TYPE_TEXT
-    if training_params["use_text_cols"]
-    else MODEL_TYPE_NUM_CAT
-    if training_params["use_number_category_cols"]
-    else MODEL_TYPE_OTHER
-)
+TRAIN_TFIDF = training_params["use_text_cols"]
+TRAIN_NUM_CAT = training_params["use_number_category_cols"]
 
 local_path = "."
 train_df_path = "rML-train.csv"
 tfidf_path = "models/tfidf.pkl"
-model_path = "models/model.pkl"
+clf_tfidf_path = "models/tfidf.pkl"
+clf_num_cat_path = "models/tfidf.pkl"
+
 
 # ----- Helper Functions -----
 # A partial fit for the TfidfVectorizer courtesy @maxymoo on Stack Overflow
 # https://stackoverflow.com/questions/39109743/adding-new-text-to-sklearn-tfidif-vectorizer-python/39114555#39114555
 def partial_fit(self, X):
     # If this is the first iteration, use regular fit
-    if not hasattr(self, "is_initialized"):
+    if not hasattr(self, 'is_initialized'):
         self.fit(X)
         self.n_docs = len(X)
         self.is_initialized = True
@@ -84,53 +78,13 @@ def partial_fit(self, X):
             df.resize(len(self.vocabulary_))
             for w in tokens:
                 df[self.vocabulary_[w]] += 1
-            idf = np.log((self.n_docs + self.smooth_idf) / (df + self.smooth_idf)) + 1
+            idf = (
+                np.log((self.n_docs + self.smooth_idf) / (df + self.smooth_idf)) + 1
+            )
             self._tfidf._idf_diag = dia_matrix((idf, 0), shape=(len(idf), len(idf)))
 
 
-# Prepare a dictionary of either hyperparams or metrics for logging.
-def prepare_log(d, prefix=''):
-    if prefix:
-        prefix = f'{prefix}__'
-
-    # Ensure all logged values are suitable for logging - complex objects aren't supported.
-    def sanitize(value):
-        return value if value is None or type(value) in [str, int, float, bool] else str(value)
-
-    return {f'{prefix}{k}': sanitize(v) for k, v in d.items()}
-
 # ----- End Helper Functions -----
-
-
-class TextModel:
-    def __init__(self, random_state=42):
-        self.model = SGDClassifier(loss="log", random_state=random_state)
-        print("Generate TFIDF features...")
-        TfidfVectorizer.partial_fit = partial_fit
-        self.tfidf = TfidfVectorizer(max_features=25000)
-        for i, chunk in enumerate(
-            pd.read_csv(os.path.join(remote_wfs, train_df_path), chunksize=CHUNK_SIZE)
-        ):
-            print(f"Training on chunk {i+1}...")
-            self.tfidf.partial_fit(chunk["title_and_body"])
-
-        print("TFIDF feature matrix created!")
-    
-
-    def train_on_chunk(self, chunk):
-        df_y = chunk[TARGET_LABEL]
-        tfidf_X = self.tfidf.transform(chunk["title_and_body"].values.astype('U'))
-        self.model.partial_fit(tfidf_X, df_y, classes=np.array([0, 1]))
-        
-
-    def save_model(self, logger=None):
-        joblib.dump(self.tfidf, os.path.join(local_path, tfidf_path))
-        joblib.dump(self.model, os.path.join(local_path, model_path))
-        # log params
-        if logger:
-            logger.log_hyperparams(prepare_log(self.tfidf.get_params(), 'tfidf'))
-            logger.log_hyperparams(prepare_log(self.model.get_params(), 'model'))
-            logger.log_hyperparams(model_class=type(self.model).__name__)
 
 
 def get_remote_gs_wfs():
@@ -141,28 +95,52 @@ def get_remote_gs_wfs():
     return remote_wfs_loc
 
 
-def load_and_train(remote_wfs, model_type=None, random_state=42):
+def load_and_train(remote_wfs, random_state=42):
     print("Initializing models...")
-    if model_type == MODEL_TYPE_TEXT:
-        model = TextModel(random_state=random_state)
-    else:
-        # TODO
-        return
+    if TRAIN_TFIDF:
+        clf_tfidf = SGDClassifier(loss="log", random_state=random_state)
+        print("Generate TFIDF features...")
+        TfidfVectorizer.partial_fit = partial_fit
+        tfidf = TfidfVectorizer(max_features=25000)
+        for i, chunk in enumerate(
+            pd.read_csv(os.path.join(remote_wfs, train_df_path), chunksize=CHUNK_SIZE)
+        ):
+            print(f"Training on chunk {i+1}...")
+            tfidf.partial_fit(chunk["title_and_body"])
+
+        print("TFIDF feature matrix created!")
+
+    if TRAIN_NUM_CAT:
+        num_cat_cols = NUM_COL_NAMES + CAT_COL_NAMES
+        clf_num_cat = SGDClassifier(loss="log", random_state=random_state)
 
     print("Training model...")
     for i, chunk in enumerate(
         pd.read_csv(os.path.join(remote_wfs, train_df_path), chunksize=CHUNK_SIZE)
     ):
         print(f"Training on chunk {i+1}...")
-        model.train_on_chunk(chunk)
+        df_y = chunk[TARGET_LABEL]
+        if TRAIN_TFIDF:
+            tfidf_X = tfidf.transform(chunk["title_and_body"])
+            clf_tfidf.partial_fit(tfidf_X, df_y, classes=np.array([0,1]))
 
-    print("Saving models locally...")
-    with dagshub.dagshub_logger() as logger:
-        logger.log_hyperparams(feature_type='text')
-        model.save_model(logger=logger)
+        if TRAIN_NUM_CAT:
+            num_cat_X = chunk[num_cat_cols]
+            clf_num_cat.partial_fit(num_cat_X, df_y, classes=np.array([0,1]))
+
+        print("Saving models locally...")
+        save_data(tfidf, clf_tfidf, clf_num_cat)
+
+
+def save_data(tfidf=None, clf_tfidf=None, clf_num_cat=None):
+    if TRAIN_TFIDF:
+        joblib.dump(tfidf, os.path.join(local_path, tfidf_path))
+        joblib.dump(clf_tfidf, os.path.join(local_path, clf_tfidf_path))
+    if TRAIN_NUM_CAT:
+        joblib.dump(clf_num_cat, os.path.join(local_path, clf_num_cat_path))
 
 
 if __name__ == "__main__":
     remote_wfs = get_remote_gs_wfs()
-    load_and_train(remote_wfs, MODEL_TYPE)
+    load_and_train(remote_wfs)
     print("Loading and training done!")
