@@ -1,0 +1,19 @@
+md5: 3d1e88c605769f5546c07c6af7c8aa55
+cmd: python3 evaluate.py
+deps:
+- md5: 51ac6cbe17cff8312696023a21cd67ad
+  path: remote://remote-wfs/rML-test.csv
+- md5: 82b9c59c1e65907c4a5e8b318bbfd33f.dir
+  path: models
+- md5: fd72d874a18159ce4a7855eb23ce4165
+  path: general_params.yml
+- md5: 591fba305671a4acd42400ececfb6690
+  path: training_params.yml
+- md5: 901eca9a44283b21548ed9ef5ad1afd1
+  path: evaluate.py
+outs:
+- md5: dfe74067173de98757daa6e574771ea4
+  path: metrics.csv
+  cache: false
+  metric: true
+  persist: false

@@ -1,22 +1,17 @@
-import dagshub
 import os
+import re
 import pandas as pd
 import yaml
+import dagshub
 
-import re
 import numpy as np
 import joblib
 from scipy.sparse.dia import dia_matrix
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import SGDClassifier
-from sklearn.metrics import (
-    roc_auc_score,
-    average_precision_score,
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score,
-)
+
+from reddit_utils import calculate_metrics, prepare_log
+import reddit_utils
 
 with open(r"./general_params.yml") as f:
     params = yaml.safe_load(f)
@@ -24,19 +19,6 @@ with open(r"./general_params.yml") as f:
 with open(r"./training_params.yml") as f:
     training_params = yaml.safe_load(f)
 
-NUM_COL_NAMES = ["title_len", "body_len", "hour", "minute", "dayofweek", "dayofyear"]
-CAT_COL_NAMES = [
-    "has_thumbnail",
-    "flair_Clickbait",
-    "flair_Discussion",
-    "flair_Inaccurate",
-    "flair_Misleading",
-    "flair_News",
-    "flair_None",
-    "flair_Project",
-    "flair_Research",
-    "flair_Shameless Self Promo",
-]
 CHUNK_SIZE = params["chunk_size"]
 TARGET_LABEL = params["target_col"]
 MODEL_TYPE_TEXT = "model_text"
@@ -50,10 +32,7 @@ MODEL_TYPE = (
     else MODEL_TYPE_OTHER
 )
 
-local_path = "."
 train_df_path = "rML-train.csv"
-tfidf_path = "models/tfidf.pkl"
-model_path = "models/model.pkl"
 
 # ----- Helper Functions -----
 # A partial fit for the TfidfVectorizer courtesy @maxymoo on Stack Overflow
@@ -86,19 +65,6 @@ def partial_fit(self, X):
                 df[self.vocabulary_[w]] += 1
             idf = np.log((self.n_docs + self.smooth_idf) / (df + self.smooth_idf)) + 1
             self._tfidf._idf_diag = dia_matrix((idf, 0), shape=(len(idf), len(idf)))
-
-
-# Prepare a dictionary of either hyperparams or metrics for logging.
-def prepare_log(d, prefix=''):
-    if prefix:
-        prefix = f'{prefix}__'
-
-    # Ensure all logged values are suitable for logging - complex objects aren't supported.
-    def sanitize(value):
-        return value if value is None or type(value) in [str, int, float, bool] else str(value)
-
-    return {f'{prefix}{k}': sanitize(v) for k, v in d.items()}
-
 # ----- End Helper Functions -----
 
 
@@ -115,21 +81,19 @@ class TextModel:
             self.tfidf.partial_fit(chunk["title_and_body"])
 
         print("TFIDF feature matrix created!")
-    
 
     def train_on_chunk(self, chunk):
         df_y = chunk[TARGET_LABEL]
-        tfidf_X = self.tfidf.transform(chunk["title_and_body"].values.astype('U'))
+        tfidf_X = self.tfidf.transform(chunk["title_and_body"].values.astype("U"))
         self.model.partial_fit(tfidf_X, df_y, classes=np.array([0, 1]))
-        
 
     def save_model(self, logger=None):
-        joblib.dump(self.tfidf, os.path.join(local_path, tfidf_path))
-        joblib.dump(self.model, os.path.join(local_path, model_path))
+        joblib.dump(self.tfidf, os.path.join(reddit_utils.LOCAL_PATH, reddit_utils.TFIDF_PATH))
+        joblib.dump(self.model, os.path.join(reddit_utils.LOCAL_PATH, reddit_utils.MODEL_PATH))
         # log params
         if logger:
-            logger.log_hyperparams(prepare_log(self.tfidf.get_params(), 'tfidf'))
-            logger.log_hyperparams(prepare_log(self.model.get_params(), 'model'))
+            logger.log_hyperparams(prepare_log(self.tfidf.get_params(), "tfidf"))
+            logger.log_hyperparams(prepare_log(self.model.get_params(), "model"))
             logger.log_hyperparams(model_class=type(self.model).__name__)
 
 
@@ -157,8 +121,8 @@ def load_and_train(remote_wfs, model_type=None, random_state=42):
         model.train_on_chunk(chunk)
 
     print("Saving models locally...")
-    with dagshub.dagshub_logger() as logger:
-        logger.log_hyperparams(feature_type='text')
+    with dagshub.dagshub_logger(should_log_metrics=False) as logger:
+        logger.log_hyperparams(feature_type="text")
         model.save_model(logger=logger)
 
 
