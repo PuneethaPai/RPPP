@@ -74,22 +74,26 @@ class TextModel:
         print("Generate TFIDF features...")
         TfidfVectorizer.partial_fit = partial_fit
         self.tfidf = TfidfVectorizer(max_features=25000)
-        for i, chunk in enumerate(
-            pd.read_csv(os.path.join(remote_wfs, train_df_path), chunksize=CHUNK_SIZE)
-        ):
-            print(f"Training on chunk {i+1}...")
-            self.tfidf.partial_fit(chunk["title_and_body"])
+    
+    def train(self):
+        print("Training TextModel...")
+
+        for i, chunk in enumerate(pd.read_csv(os.path.join(remote_wfs, train_df_path), chunksize=CHUNK_SIZE)):
+            print(f"Fitting TFIDF to chunk {i+1}...")
+            self.tfidf.partial_fit(chunk["title_and_body"].values.astype("U"))
 
         print("TFIDF feature matrix created!")
 
-    def train_on_chunk(self, chunk):
-        df_y = chunk[TARGET_LABEL]
-        tfidf_X = self.tfidf.transform(chunk["title_and_body"].values.astype("U"))
-        self.model.partial_fit(tfidf_X, df_y, classes=np.array([0, 1]))
+        for i, chunk in enumerate(pd.read_csv(os.path.join(remote_wfs, train_df_path), chunksize=CHUNK_SIZE)):
+            print(f"Training on chunk {i+1}...")
+            df_y = chunk[TARGET_LABEL]
+            tfidf_X = self.tfidf.transform(chunk["title_and_body"].values.astype("U"))
+            self.model.partial_fit(tfidf_X, df_y, classes=np.array([0, 1]))
 
     def save_model(self, logger=None):
-        joblib.dump(self.tfidf, os.path.join(reddit_utils.LOCAL_PATH, reddit_utils.TFIDF_PATH))
-        joblib.dump(self.model, os.path.join(reddit_utils.LOCAL_PATH, reddit_utils.MODEL_PATH))
+        os.makedirs(reddit_utils.MODELS_DIR, exist_ok=True)
+        joblib.dump(self.model, reddit_utils.MODEL_PATH)
+        joblib.dump(self.tfidf, reddit_utils.TFIDF_PATH)
         # log params
         if logger:
             logger.log_hyperparams(prepare_log(self.tfidf.get_params(), "tfidf"))
@@ -113,12 +117,7 @@ def load_and_train(remote_wfs, model_type=None, random_state=42):
         # TODO
         return
 
-    print("Training model...")
-    for i, chunk in enumerate(
-        pd.read_csv(os.path.join(remote_wfs, train_df_path), chunksize=CHUNK_SIZE)
-    ):
-        print(f"Training on chunk {i+1}...")
-        model.train_on_chunk(chunk)
+    model.train()
 
     print("Saving models locally...")
     with dagshub.dagshub_logger(should_log_metrics=False) as logger:
