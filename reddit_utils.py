@@ -23,9 +23,9 @@ CAT_COL_NAMES = [
 ]
 
 # ----- Paths -----
-LOCAL_PATH = "."
-TFIDF_PATH = "models/tfidf.pkl"
-MODEL_PATH = "models/model.pkl"
+MODELS_DIR = "./models"
+TFIDF_PATH = MODELS_DIR + "/tfidf.pkl"
+MODEL_PATH = MODELS_DIR + "/model.pkl"
 
 # ----- Functions -----
 def calculate_metrics(y_pred, y_proba, y):

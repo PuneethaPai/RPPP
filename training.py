@@ -88,8 +88,9 @@ class TextModel:
         self.model.partial_fit(tfidf_X, df_y, classes=np.array([0, 1]))
 
     def save_model(self, logger=None):
-        joblib.dump(self.tfidf, os.path.join(reddit_utils.LOCAL_PATH, reddit_utils.TFIDF_PATH))
-        joblib.dump(self.model, os.path.join(reddit_utils.LOCAL_PATH, reddit_utils.MODEL_PATH))
+        os.makedirs(reddit_utils.MODELS_DIR)
+        joblib.dump(self.model, reddit_utils.MODEL_PATH)
+        joblib.dump(self.tfidf, reddit_utils.TFIDF_PATH)
         # log params
         if logger:
             logger.log_hyperparams(prepare_log(self.tfidf.get_params(), "tfidf"))

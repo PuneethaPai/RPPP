@@ -47,8 +47,8 @@ def get_remote_gs_wfs():
 def load_transform_and_eval(remote_wfs, model_type=None, random_state=42):
     print("loading transformer and model...")
     if model_type == MODEL_TYPE_TEXT:
-        model = joblib.load(os.path.join(reddit_utils.LOCAL_PATH, reddit_utils.MODEL_PATH))
-        tfidf = joblib.load(os.path.join(reddit_utils.LOCAL_PATH, reddit_utils.TFIDF_PATH))
+        model = joblib.load(reddit_utils.MODEL_PATH)
+        tfidf = joblib.load(reddit_utils.TFIDF_PATH)
     else:
         # TODO
         return
