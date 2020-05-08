@@ -15,4 +15,5 @@ Read the [Contribution Guide](https://dagshub.com/Dean/RPPP/src/master/CONTRIBUT
 - [ ] Add UI to test if your post is going to be successful!
 - [ ] Add MOAR data! (other subreddits, more from r/ML)
 - [ ] Improve model performance (there is a lotttt to improve)!
-- [ ] Add memes: ![Add MOAR MEMES](https://i.pinimg.com/originals/c6/28/e1/c628e198f6e481c3fb78c476c9943fba.jpg)
+- [ ] Add memes: 
+![Add MOAR MEMES](https://i.pinimg.com/originals/c6/28/e1/c628e198f6e481c3fb78c476c9943fba.jpg)
