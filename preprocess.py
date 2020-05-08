@@ -74,9 +74,14 @@ def process(chunk):
     df = df.fillna({"body": "", "flair": "None", "body_len": 0})
     df["flair"] = ["Discussion" if (x == "Discusssion") else x for x in df["flair"]]
 
-    df = pd.concat([df, pd.get_dummies(df["flair"], prefix="flair", columns=UNIQUE_FLAIRS)], axis=1).drop(
+    df = pd.concat([df, pd.get_dummies(df["flair"], prefix="flair")], axis=1).drop(
         ["flair"], axis=1
     )
+
+    for flair in UNIQUE_FLAIRS:
+        flair_with_prefix = 'flair_' + flair
+        if flair_with_prefix not in df.columns:
+            df[flair_with_prefix] = 0
 
     df = df[df['title'] != '[deleted by user]']
     df = df[df['body'] != '[deleted]']
@@ -91,7 +96,6 @@ def save_data(train_chunk, train_f, test_chunk, test_f, i):
     # TODO: Saving is kinda slow now. Try to improve performance
     # We want to write the headers only once
     header = True if i == 0 else False
-
     train_chunk.to_csv(train_f, header=header, mode="a")
     test_chunk.to_csv(test_f, header=header, mode="a")
 
