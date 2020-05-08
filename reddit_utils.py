@@ -21,6 +21,7 @@ CAT_COL_NAMES = [
     "flair_Research",
     "flair_Shameless Self Promo",
 ]
+TEXT_COL_NAME = ['title_and_body']
 
 # ----- Paths -----
 MODELS_DIR = "./models"

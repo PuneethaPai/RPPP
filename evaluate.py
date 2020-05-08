@@ -3,11 +3,8 @@ import os
 import pandas as pd
 import yaml
 
-import re
 import numpy as np
 import joblib
-from scipy.sparse.dia import dia_matrix
-from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import SGDClassifier
 
 from reddit_utils import calculate_metrics, prepare_log
@@ -16,22 +13,18 @@ import reddit_utils
 with open(r"./general_params.yml") as f:
     params = yaml.safe_load(f)
 
-with open(r"./training_params.yml") as f:
-    training_params = yaml.safe_load(f)
+with open(r"./model_params.yml") as f:
+    model_params = yaml.safe_load(f)
 
 CHUNK_SIZE = params["chunk_size"]
 TARGET_LABEL = params["target_col"]
-MODEL_TYPE_TEXT = "model_text"
-MODEL_TYPE_NUM_CAT = "model_num_cat"
-MODEL_TYPE_OTHER = ""
-MODEL_TYPE = (
-    MODEL_TYPE_TEXT
-    if training_params["use_text_cols"]
-    else MODEL_TYPE_NUM_CAT
-    if training_params["use_number_category_cols"]
-    else MODEL_TYPE_OTHER
-)
+COLS_FOR_EVAL = []
 
+if model_params["use_text_cols"]:
+    COLS_FOR_EVAL += reddit_utils.TEXT_COL_NAME
+
+if model_params["use_number_category_cols"]:
+    COLS_FOR_EVAL += reddit_utils.NUM_COL_NAMES + reddit_utils.CAT_COL_NAMES
 
 TEST_DF_PATH = "rML-test.csv"
 
@@ -44,14 +37,9 @@ def get_remote_gs_wfs():
     return remote_wfs_loc
 
 
-def load_transform_and_eval(remote_wfs, model_type=None, random_state=42):
+def load_transform_and_eval(remote_wfs, random_state=42):
     print("loading transformer and model...")
-    if model_type == MODEL_TYPE_TEXT:
-        model = joblib.load(reddit_utils.MODEL_PATH)
-        tfidf = joblib.load(reddit_utils.TFIDF_PATH)
-    else:
-        # TODO
-        return
+    model = joblib.load(reddit_utils.MODEL_PATH)
 
     y_proba = np.array([])
     y_pred = np.array([])
@@ -61,13 +49,12 @@ def load_transform_and_eval(remote_wfs, model_type=None, random_state=42):
         pd.read_csv(os.path.join(remote_wfs, TEST_DF_PATH), chunksize=CHUNK_SIZE)
     ):
         print(f"Testing on chunk {i+1}...")
-        test_tfidf = tfidf.transform(chunk["title_and_body"].values.astype("U"))
-        y_proba = np.concatenate((y_pred, model.predict_proba(test_tfidf)[:, 1]))
-        y_pred = np.concatenate((y_pred, model.predict(test_tfidf)))
+        df_X = chunk[COLS_FOR_EVAL]
+        y_proba = np.concatenate((y_pred, model.predict_proba(df_X)[:, 1]))
+        y_pred = np.concatenate((y_pred, model.predict(df_X)))
         y = np.concatenate((y, chunk[TARGET_LABEL]))
 
     print("Calculating metrics")
-    print(np.unique(y_proba), np.unique(y_pred), np.unique(y))
     metrics = calculate_metrics(y_pred, y_proba, y)
 
     print("Logging metrics...")
@@ -77,5 +64,5 @@ def load_transform_and_eval(remote_wfs, model_type=None, random_state=42):
 
 if __name__ == "__main__":
     remote_wfs = get_remote_gs_wfs()
-    load_transform_and_eval(remote_wfs, MODEL_TYPE)
+    load_transform_and_eval(remote_wfs)
     print("Model evaluation done!")

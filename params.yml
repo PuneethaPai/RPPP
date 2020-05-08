@@ -1,4 +1,4 @@
-feature_type: text
+feature_type: numerical + categorical
 model__alpha: 0.0001
 model__average: false
 model__class_weight: null
@@ -21,24 +21,3 @@ model__validation_fraction: 0.1
 model__verbose: 0
 model__warm_start: false
 model_class: SGDClassifier
-tfidf__analyzer: word
-tfidf__binary: false
-tfidf__decode_error: strict
-tfidf__dtype: <class 'numpy.float64'>
-tfidf__encoding: utf-8
-tfidf__input: content
-tfidf__lowercase: true
-tfidf__max_df: 1.0
-tfidf__max_features: 25000
-tfidf__min_df: 1
-tfidf__ngram_range: (1, 1)
-tfidf__norm: l2
-tfidf__preprocessor: null
-tfidf__smooth_idf: true
-tfidf__stop_words: null
-tfidf__strip_accents: null
-tfidf__sublinear_tf: false
-tfidf__token_pattern: (?u)\b\w\w+\b
-tfidf__tokenizer: null
-tfidf__use_idf: true
-tfidf__vocabulary: null
