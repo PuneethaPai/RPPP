@@ -1,13 +1,13 @@
-md5: b2810c657caff91cecb0468b99b88180
+md5: 78a657b550abcd00f75efe809e1f5e07
 cmd: python3 training.py
 deps:
 - md5: ecab8e10326ee39e8250cbf22e50224f
   path: remote://remote-wfs/rML-train.csv
 - md5: fd72d874a18159ce4a7855eb23ce4165
   path: general_params.yml
-- md5: 71ced486704308e99ca89f3d22f4bf56
+- md5: e5510afe14965114dc29ec2f781a4db7
   path: model_def.py
-- md5: 46916787af4dcde722cd9323ba76149b
+- md5: 4e4fa7f60fe21757418a3b3337e95cb9
   path: training.py
 outs:
 - md5: 10b54c065df5919ef803a3baf6f35cb4.dir
@@ -20,3 +20,8 @@ outs:
   cache: false
   metric: false
   persist: true
+- md5: 5d4f865b47f7475454274578fd1fed99
+  path: training_metrics.csv
+  cache: false
+  metric: true
+  persist: false

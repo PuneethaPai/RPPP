@@ -1,4 +1,4 @@
-md5: f6449865a7109b477c1b55a88c5a4be6
+md5: e22cc4f7024364cad7ba50de27dcfadc
 cmd: python3 evaluate.py
 deps:
 - md5: 629a4d0505914f5599bb94be702341b5
@@ -9,11 +9,11 @@ deps:
   path: general_params.yml
 - md5: 4fd46c838ef321cb00b0032d0f182466
   path: model_params.yml
-- md5: 3965502eb9a0e9b0f13bc5852b49a145
+- md5: 215966e834c477c0b53c06076d477e0e
   path: evaluate.py
 outs:
-- md5: 59d64c415ef69d100516a658c4ebcae6
-  path: metrics.csv
+- md5: a79f78d40ab374a90bb04d0c68e1ad65
+  path: test_metrics.csv
   cache: false
   metric: true
   persist: false

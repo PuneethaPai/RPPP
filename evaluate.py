@@ -46,7 +46,7 @@ def load_transform_and_eval(remote_wfs, random_state=42):
     metrics = reddit_utils.calculate_metrics(y_pred, y_proba, y)
 
     print("Logging metrics...")
-    with dagshub.dagshub_logger(should_log_hparams=False) as logger:
+    with dagshub.dagshub_logger(should_log_hparams=False, metrics_path='test_metrics.csv') as logger:
         logger.log_metrics(reddit_utils.prepare_log(metrics, "test"))
 
 
