@@ -1,3 +1,6 @@
+import os
+import re
+
 from sklearn.metrics import (
     roc_auc_score,
     average_precision_score,
@@ -6,6 +9,11 @@ from sklearn.metrics import (
     recall_score,
     f1_score,
 )
+
+# ----- Cloud Details -----
+PROJECT_NAME = "talos-project"
+BIGQUERY_PROJECT = "project-talos"
+GCLOUD_CRED_ENV_VAR = "GOOGLE_APPLICATION_CREDENTIALS"
 
 # ----- Constants -----
 NUM_COL_NAMES = ["title_len", "body_len", "hour", "minute", "dayofweek", "dayofyear"]
@@ -21,23 +29,35 @@ CAT_COL_NAMES = [
     "flair_Research",
     "flair_Shameless Self Promo",
 ]
-TEXT_COL_NAME = ['title_and_body']
+TEXT_COL_NAME = ["title_and_body"]
 
 # ----- Paths -----
 MODELS_DIR = "./models"
 TFIDF_PATH = MODELS_DIR + "/tfidf.pkl"
 MODEL_PATH = MODELS_DIR + "/model.pkl"
+RAW_DF_PATH = "rML-raw-data.csv"
+TRAIN_DF_PATH = "rML-train.csv"
+TEST_DF_PATH = "rML-test.csv"
 
 # ----- Functions -----
 def calculate_metrics(y_pred, y_proba, y):
     return {
-        'roc_auc': roc_auc_score(y, y_proba),
-        'average_precision': average_precision_score(y, y_proba),
-        'accuracy': accuracy_score(y, y_pred),
-        'precision': precision_score(y, y_pred),
-        'recall': recall_score(y, y_pred),
-        'f1': f1_score(y, y_pred),
+        "roc_auc": roc_auc_score(y, y_proba),
+        "average_precision": average_precision_score(y, y_proba),
+        "accuracy": accuracy_score(y, y_pred),
+        "precision": precision_score(y, y_pred),
+        "recall": recall_score(y, y_pred),
+        "f1": f1_score(y, y_pred),
     }
+
+
+def get_remote_gs_wfs():
+    print("Retreiving location of remote working file system...")
+    stream = os.popen("dvc remote list --local")
+    output = stream.read()
+    remote_wfs_loc = output.split("\t")[1].split("\n")[0]
+    return remote_wfs_loc
+
 
 # Prepare a dictionary of either hyperparams or metrics for logging.
 def prepare_log(d, prefix=""):

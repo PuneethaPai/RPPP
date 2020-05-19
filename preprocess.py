@@ -4,14 +4,14 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 import yaml
 
+import reddit_utils
+
 with open(r"./general_params.yml") as f:
     params = yaml.safe_load(f)
 
 CHUNK_SIZE = params["chunk_size"]
 TARGET_LABEL = params["target_col"]
 
-PROJECT_NAME = "talos-project"
-GCLOUD_CRED_ENV_VAR = "GOOGLE_APPLICATION_CREDENTIALS"
 UNIQUE_FLAIRS = [
     "Discussion",
     "Project",
@@ -24,29 +24,16 @@ UNIQUE_FLAIRS = [
     "Clickbait",
 ]
 
-raw_df_path = "rML-raw-data.csv"
-train_df_path = "rML-train.csv"
-test_df_path = "rML-test.csv"
-
-
-def get_remote_gs_wfs():
-    print("Retreiving location of remote working file system...")
-    stream = os.popen("dvc remote list --local")
-    output = stream.read()
-    remote_wfs_loc = output.split("\t")[1].split("\n")[0]
-    return remote_wfs_loc
-
-
 def load_and_process_data(remote_wfs, random_state=42):
     fs = gcsfs.GCSFileSystem(
-        project=PROJECT_NAME, token=os.environ[GCLOUD_CRED_ENV_VAR]
+        project=reddit_utils.PROJECT_NAME, token=os.environ[reddit_utils.GCLOUD_CRED_ENV_VAR]
     )
-    with fs.open(os.path.join(remote_wfs, train_df_path), "a") as train_f, fs.open(
-        os.path.join(remote_wfs, test_df_path), "a"
+    with fs.open(os.path.join(remote_wfs, reddit_utils.TRAIN_DF_PATH), "a") as train_f, fs.open(
+        os.path.join(remote_wfs, reddit_utils.TEST_DF_PATH), "a"
     ) as test_f:
         print("Loading data in chuncks...")
         for i, chunk in enumerate(
-            pd.read_csv(os.path.join(remote_wfs, raw_df_path), chunksize=CHUNK_SIZE)
+            pd.read_csv(os.path.join(remote_wfs, reddit_utils.RAW_DF_PATH), chunksize=CHUNK_SIZE)
         ):
             print(f"Processing chunk {i+1}...")
             processed_data = process(chunk)
@@ -79,13 +66,13 @@ def process(chunk):
     )
 
     for flair in UNIQUE_FLAIRS:
-        flair_with_prefix = 'flair_' + flair
+        flair_with_prefix = "flair_" + flair
         if flair_with_prefix not in df.columns:
             df[flair_with_prefix] = 0
 
-    df = df[df['title'] != '[deleted by user]']
-    df = df[df['body'] != '[deleted]']
-    df = df[df['body'] != '[removed]']
+    df = df[df["title"] != "[deleted by user]"]
+    df = df[df["body"] != "[deleted]"]
+    df = df[df["body"] != "[removed]"]
 
     df["title_and_body"] = (df["title"] + " " + df["body"]).astype(str)
 
@@ -101,6 +88,6 @@ def save_data(train_chunk, train_f, test_chunk, test_f, i):
 
 
 if __name__ == "__main__":
-    remote_wfs = get_remote_gs_wfs()
+    remote_wfs = reddit_utils.get_remote_gs_wfs()
     load_and_process_data(remote_wfs)
     print("Loading and processing done!")

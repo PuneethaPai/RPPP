@@ -5,9 +5,7 @@ import yaml
 
 import numpy as np
 import joblib
-from sklearn.linear_model import SGDClassifier
 
-from reddit_utils import calculate_metrics, prepare_log
 import reddit_utils
 
 with open(r"./general_params.yml") as f:
@@ -26,16 +24,6 @@ if model_params["use_text_cols"]:
 if model_params["use_number_category_cols"]:
     COLS_FOR_EVAL += reddit_utils.NUM_COL_NAMES + reddit_utils.CAT_COL_NAMES
 
-TEST_DF_PATH = "rML-test.csv"
-
-
-def get_remote_gs_wfs():
-    print("Retreiving location of remote working file system...")
-    stream = os.popen("dvc remote list --local")
-    output = stream.read()
-    remote_wfs_loc = output.split("\t")[1].split("\n")[0]
-    return remote_wfs_loc
-
 
 def load_transform_and_eval(remote_wfs, random_state=42):
     print("loading transformer and model...")
@@ -46,7 +34,7 @@ def load_transform_and_eval(remote_wfs, random_state=42):
     y = np.array([])
     print("Loading test data and testing model...")
     for i, chunk in enumerate(
-        pd.read_csv(os.path.join(remote_wfs, TEST_DF_PATH), chunksize=CHUNK_SIZE)
+        pd.read_csv(os.path.join(remote_wfs, reddit_utils.TEST_DF_PATH), chunksize=CHUNK_SIZE)
     ):
         print(f"Testing on chunk {i+1}...")
         df_X = chunk[COLS_FOR_EVAL]
@@ -55,14 +43,14 @@ def load_transform_and_eval(remote_wfs, random_state=42):
         y = np.concatenate((y, chunk[TARGET_LABEL]))
 
     print("Calculating metrics")
-    metrics = calculate_metrics(y_pred, y_proba, y)
+    metrics = reddit_utils.calculate_metrics(y_pred, y_proba, y)
 
     print("Logging metrics...")
     with dagshub.dagshub_logger(should_log_hparams=False) as logger:
-        logger.log_metrics(prepare_log(metrics, "test"))
+        logger.log_metrics(reddit_utils.prepare_log(metrics, "test"))
 
 
 if __name__ == "__main__":
-    remote_wfs = get_remote_gs_wfs()
+    remote_wfs = reddit_utils.get_remote_gs_wfs()
     load_transform_and_eval(remote_wfs)
     print("Model evaluation done!")
