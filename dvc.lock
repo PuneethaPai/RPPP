@@ -1,0 +1,56 @@
+make_data:
+  cmd: python3 make_dataset.py
+  deps:
+  - path: make_dataset.py
+    md5: d700791fac216077c43596a5ea326f74
+  outs:
+  - path: remote://remote-wfs/rML-raw-data.csv
+    md5: 15ae93ba7e913bcad890c2461048a9c9
+eval:
+  cmd: python3 evaluate.py
+  deps:
+  - path: evaluate.py
+    md5: 215966e834c477c0b53c06076d477e0e
+  - path: general_params.yml
+    md5: fd72d874a18159ce4a7855eb23ce4165
+  - path: model_params.yml
+    md5: 4fd46c838ef321cb00b0032d0f182466
+  - path: models
+    md5: 10b54c065df5919ef803a3baf6f35cb4.dir
+  - path: remote://remote-wfs/rML-test.csv
+    md5: 629a4d0505914f5599bb94be702341b5
+  outs:
+  - path: test_metrics.csv
+    md5: a79f78d40ab374a90bb04d0c68e1ad65
+preprocessing:
+  cmd: python3 preprocess.py
+  deps:
+  - path: general_params.yml
+    md5: fd72d874a18159ce4a7855eb23ce4165
+  - path: preprocess.py
+    md5: a8480e16883609ca58978caa77e4a67f
+  - path: remote://remote-wfs/rML-raw-data.csv
+    md5: 15ae93ba7e913bcad890c2461048a9c9
+  outs:
+  - path: remote://remote-wfs/rML-test.csv
+    md5: 629a4d0505914f5599bb94be702341b5
+  - path: remote://remote-wfs/rML-train.csv
+    md5: ecab8e10326ee39e8250cbf22e50224f
+training:
+  cmd: python3 training.py
+  deps:
+  - path: general_params.yml
+    md5: fd72d874a18159ce4a7855eb23ce4165
+  - path: model_def.py
+    md5: e5510afe14965114dc29ec2f781a4db7
+  - path: remote://remote-wfs/rML-train.csv
+    md5: ecab8e10326ee39e8250cbf22e50224f
+  - path: training.py
+    md5: 4e4fa7f60fe21757418a3b3337e95cb9
+  outs:
+  - path: models
+    md5: 10b54c065df5919ef803a3baf6f35cb4.dir
+  - path: params.yml
+    md5: 2425d4cc306ef245b718ef1179191bf5
+  - path: training_metrics.csv
+    md5: 5d4f865b47f7475454274578fd1fed99
