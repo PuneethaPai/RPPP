@@ -10,47 +10,67 @@ eval:
   cmd: python3 evaluate.py
   deps:
   - path: evaluate.py
-    md5: 215966e834c477c0b53c06076d477e0e
+    md5: 9efaebadb2f8d9c95506ebcfc6e2ff07
+    size: 1618
   - path: general_params.yml
     md5: fd72d874a18159ce4a7855eb23ce4165
+    size: 44
   - path: model_params.yml
     md5: 4fd46c838ef321cb00b0032d0f182466
+    size: 51
   - path: models
-    md5: 10b54c065df5919ef803a3baf6f35cb4.dir
-  - path: remote://remote-wfs/rML-test.csv
+    md5: 91682815a9b9323d1e5e61e3b6c55161.dir
+    size: 870633
+    nfiles: 2
+  - path: processed/rML-test.csv
     md5: 629a4d0505914f5599bb94be702341b5
+    size: 2862132
   outs:
   - path: test_metrics.csv
-    md5: a79f78d40ab374a90bb04d0c68e1ad65
+    md5: 6e7e3cb6ae4ff66817737e2ff57d54f1
+    size: 355
 preprocessing:
   cmd: python3 preprocess.py
   deps:
   - path: general_params.yml
     md5: fd72d874a18159ce4a7855eb23ce4165
+    size: 44
   - path: preprocess.py
-    md5: a8480e16883609ca58978caa77e4a67f
-  - path: remote://remote-wfs/rML-raw-data.csv
-    md5: 15ae93ba7e913bcad890c2461048a9c9
+    md5: a5eff68538e452eb07a7597c4a0e70c5
+    size: 2636
+  - path: raw/rML-raw-data.csv
+    md5: ce3a47e51025812d0e5d2e5914feadb7
+    size: 7361822
   outs:
-  - path: remote://remote-wfs/rML-test.csv
+  - path: processed/rML-test.csv
     md5: 629a4d0505914f5599bb94be702341b5
-  - path: remote://remote-wfs/rML-train.csv
-    md5: ecab8e10326ee39e8250cbf22e50224f
+    size: 2862132
+  - path: processed/rML-train.csv
+    md5: 9b1f377458cc33aaa5b72a63fbb757fe
+    size: 8087263
 training:
   cmd: python3 training.py
   deps:
   - path: general_params.yml
     md5: fd72d874a18159ce4a7855eb23ce4165
+    size: 44
   - path: model_def.py
     md5: e5510afe14965114dc29ec2f781a4db7
-  - path: remote://remote-wfs/rML-train.csv
-    md5: ecab8e10326ee39e8250cbf22e50224f
+    size: 2005
+  - path: processed/rML-train.csv
+    md5: 9b1f377458cc33aaa5b72a63fbb757fe
+    size: 8087263
   - path: training.py
-    md5: 4e4fa7f60fe21757418a3b3337e95cb9
+    md5: cb87578e9e6ddf03440f7dc9901d6ba3
+    size: 865
   outs:
   - path: models
-    md5: 10b54c065df5919ef803a3baf6f35cb4.dir
+    md5: 91682815a9b9323d1e5e61e3b6c55161.dir
+    size: 870633
+    nfiles: 2
   - path: params.yml
     md5: 2425d4cc306ef245b718ef1179191bf5
+    size: 542
   - path: training_metrics.csv
-    md5: 5d4f865b47f7475454274578fd1fed99
+    md5: b1ab90df6d62c42a6352bbf8922697d6
+    size: 360

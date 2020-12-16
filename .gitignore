@@ -1,5 +1,6 @@
-env/
+.env/
 __pycache__/
 .vscode/
 step-commands/
 /models
+/raw
