@@ -18,7 +18,7 @@ dagshub==0.0.2rc1
 decorator==4.4.2
 distro==1.5.0
 dpath==2.0.1
-dvc==0.93.0
+dvc==1.11.8
 entrypoints==0.3
 fasteners==0.15
 flatten-json==0.1.7
