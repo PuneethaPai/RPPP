@@ -1,0 +1,43 @@
+stages:
+  make_data:
+    cmd: python3 make_dataset.py
+    deps:
+    - make_dataset.py
+    outs:
+    - remote://remote-wfs/rML-raw-data.csv
+  eval:
+    cmd: python3 evaluate.py
+    deps:
+    - evaluate.py
+    - general_params.yml
+    - model_params.yml
+    - models
+    - remote://remote-wfs/rML-test.csv
+    metrics:
+    - test_metrics.csv:
+        cache: false
+  preprocessing:
+    cmd: python3 preprocess.py
+    deps:
+    - general_params.yml
+    - preprocess.py
+    - remote://remote-wfs/rML-raw-data.csv
+    outs:
+    - remote://remote-wfs/rML-test.csv
+    - remote://remote-wfs/rML-train.csv
+  training:
+    cmd: python3 training.py
+    deps:
+    - general_params.yml
+    - model_def.py
+    - remote://remote-wfs/rML-train.csv
+    - training.py
+    outs:
+    - models:
+        persist: true
+    - params.yml:
+        cache: false
+        persist: true
+    metrics:
+    - training_metrics.csv:
+        cache: false
