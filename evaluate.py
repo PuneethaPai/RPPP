@@ -25,7 +25,7 @@ if model_params["use_number_category_cols"]:
     COLS_FOR_EVAL += reddit_utils.NUM_COL_NAMES + reddit_utils.CAT_COL_NAMES
 
 
-def load_transform_and_eval(remote_wfs, random_state=42):
+def load_transform_and_eval():
     print("loading transformer and model...")
     model = joblib.load(reddit_utils.MODEL_PATH)
 
@@ -34,7 +34,7 @@ def load_transform_and_eval(remote_wfs, random_state=42):
     y = np.array([])
     print("Loading test data and testing model...")
     for i, chunk in enumerate(
-        pd.read_csv(os.path.join(remote_wfs, reddit_utils.TEST_DF_PATH), chunksize=CHUNK_SIZE)
+        pd.read_csv(os.path.join('processed', reddit_utils.TEST_DF_PATH), chunksize=CHUNK_SIZE)
     ):
         print(f"Testing on chunk {i+1}...")
         df_X = chunk[COLS_FOR_EVAL]
@@ -51,6 +51,5 @@ def load_transform_and_eval(remote_wfs, random_state=42):
 
 
 if __name__ == "__main__":
-    remote_wfs = reddit_utils.get_remote_gs_wfs()
-    load_transform_and_eval(remote_wfs)
+    load_transform_and_eval()
     print("Model evaluation done!")

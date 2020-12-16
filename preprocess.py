@@ -24,27 +24,26 @@ UNIQUE_FLAIRS = [
     "Clickbait",
 ]
 
-def load_and_process_data(remote_wfs, random_state=42):
-    fs = gcsfs.GCSFileSystem(
-        project=reddit_utils.PROJECT_NAME, token=os.environ[reddit_utils.GCLOUD_CRED_ENV_VAR]
-    )
-    with fs.open(os.path.join(remote_wfs, reddit_utils.TRAIN_DF_PATH), "a") as train_f, fs.open(
-        os.path.join(remote_wfs, reddit_utils.TEST_DF_PATH), "a"
-    ) as test_f:
-        print("Loading data in chuncks...")
-        for i, chunk in enumerate(
-            pd.read_csv(os.path.join(remote_wfs, reddit_utils.RAW_DF_PATH), chunksize=CHUNK_SIZE)
-        ):
-            print(f"Processing chunk {i+1}...")
-            processed_data = process(chunk)
-            print("Splitting into train and test data...")
-            train_chunk, test_chunk = train_test_split(
-                processed_data,
-                random_state=random_state,
-                stratify=processed_data[TARGET_LABEL],
-            )
-            print("Saving to cloud...")
-            save_data(train_chunk, train_f, test_chunk, test_f, i)
+
+def load_and_process_data(random_state=42):
+    print("Loading data in chuncks...")
+    raw_data = os.path.join('raw', reddit_utils.RAW_DF_PATH)
+    processed_train = os.path.join('processed', reddit_utils.TRAIN_DF_PATH)
+    processed_test = os.path.join('processed', reddit_utils.TEST_DF_PATH)
+
+    for i, chunk in enumerate(
+            pd.read_csv(raw_data, chunksize=CHUNK_SIZE)
+    ):
+        print(f"Processing chunk {i + 1}...")
+        processed_data = process(chunk)
+        print("Splitting into train and test data...")
+        train_chunk, test_chunk = train_test_split(
+            processed_data,
+            random_state=random_state,
+            stratify=processed_data[TARGET_LABEL],
+        )
+        print("Saving to cloud...")
+        save_data(train_chunk, processed_train, test_chunk, processed_test, i)
 
 
 def process(chunk):
@@ -80,7 +79,6 @@ def process(chunk):
 
 
 def save_data(train_chunk, train_f, test_chunk, test_f, i):
-    # TODO: Saving is kinda slow now. Try to improve performance
     # We want to write the headers only once
     header = True if i == 0 else False
     train_chunk.to_csv(train_f, header=header, mode="a")
@@ -88,6 +86,5 @@ def save_data(train_chunk, train_f, test_chunk, test_f, i):
 
 
 if __name__ == "__main__":
-    remote_wfs = reddit_utils.get_remote_gs_wfs()
-    load_and_process_data(remote_wfs)
+    load_and_process_data()
     print("Loading and processing done!")

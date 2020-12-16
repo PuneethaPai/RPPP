@@ -3,6 +3,10 @@ import reddit_utils
 
 
 def make_dataset(remote_wfs):
+    # TODO: To simplify this project, the automated extraction of data has been removed,
+    #  due to the fact that BigQuery Python SDK does not support downloading of data.
+    #  It might be possible to add this step back in using a different Reddit API in the future
+
     client = bigquery.Client()
     temp_dataset_name = "reddit_dataset"
     temp_table_name = "posts"
