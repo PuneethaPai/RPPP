@@ -2,5 +2,7 @@
     gs = dvc-cache
 ['remote "dvc-cache"']
     url = gs://reddit-remote-wfs-example/dvc-cache/
-['remote "origin"']
+['remote "dean"']
     url = https://dagshub.com/Dean/RPPP.dvc
+['remote "origin"']
+    url = https://dagshub.com/puneethp/RPPP.dvc
