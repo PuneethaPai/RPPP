@@ -25,6 +25,23 @@ pipeline {
                         sh 'black . --check --diff'
                     }
                 }
+                stage('Setup DVC Creds') {
+                    steps {
+                        withCredentials(
+                            [
+                                usernamePassword(
+                                    credentialsId: 'PASSWORD',
+                                    passwordVariable: 'PASSWORD')
+                            ]
+                        ) {
+                            sh 'env'
+                            sh "echo ${env.PASSWORD}"
+                            sh 'dvc remote modify origin --local auth basic'
+                            sh 'dvc remote modify origin --local user puneethp'
+                            sh "dvc remote modify origin --local password ${env.PASSWORD}"
+                        }
+                    }
+                }
                 stage('Sync DVC Remotes') {
                     steps {
                         sh 'dvc status'
