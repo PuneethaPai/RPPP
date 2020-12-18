@@ -39,7 +39,7 @@ pipeline {
                                 dvc remote modify origin --local auth basic
                                 dvc remote modify origin --local user puneethp
                                 dvc remote modify origin --local password $PASSWORD
-                                sh 'dvc pull -r origin'
+                                dvc pull -r origin
                             '''
 
                             // sh "echo ${env.PASSWORD}"
