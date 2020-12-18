@@ -8,3 +8,4 @@ scikit_learn==0.23.2
 pytest<7
 flake8<4
 black
+dvc<2
