@@ -18,17 +18,16 @@ eval:
   - path: model_params.yml
     md5: 4fd46c838ef321cb00b0032d0f182466
     size: 51
-  - path: models
-    md5: 99ddeb52ef95a08cb3b472d778a781b9.dir
-    size: 870629
-    nfiles: 2
+  - path: models/model.pkl
+    md5: 98f38f3ef55a5cfe9a0fb27a1f6616ae
+    size: 1127
   - path: src/evaluate.py
-    md5: c0cd2b34bd7d384560d47126b2b878d9
-    size: 1672
+    md5: 5ae8f07d2b827e1064a4d959d10ff500
+    size: 1643
   outs:
-  - path: test_metrics.csv
-    md5: 56bff7e7cb3e175bdaeee38d6a661345
-    size: 355
+  - path: models/metrics/test.yaml
+    md5: 85fa7115fb52ca48ffe9e8de88d3bee0
+    size: 102
 preprocessing:
   cmd: python3 src/preprocess.py
   deps:
@@ -58,19 +57,18 @@ training:
     md5: fd72d874a18159ce4a7855eb23ce4165
     size: 44
   - path: src/model_def.py
-    md5: 4edbdbb532413ab24331e9c77043824f
-    size: 1995
+    md5: f93783b7270ebd57d40f9f6c1b8e4188
+    size: 2174
   - path: src/training.py
-    md5: 37d516f8dfba72051906dc502bde441b
-    size: 870
+    md5: 388970c00f0c5eb6b27a9077a55584d0
+    size: 871
   outs:
-  - path: models
-    md5: 99ddeb52ef95a08cb3b472d778a781b9.dir
-    size: 870629
-    nfiles: 2
+  - path: models/metrics/train.yaml
+    md5: c4fb83687d866968d411df61c68b5d63
+    size: 103
+  - path: models/model.pkl
+    md5: 98f38f3ef55a5cfe9a0fb27a1f6616ae
+    size: 1127
   - path: params.yml
     md5: 2425d4cc306ef245b718ef1179191bf5
     size: 542
-  - path: training_metrics.csv
-    md5: 5102eace5978ea73cda41e61a639bc62
-    size: 360
