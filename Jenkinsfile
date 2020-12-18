@@ -31,8 +31,7 @@ pipeline {
                             [
                                 usernamePassword(
                                     credentialsId: 'PASSWORD',
-                                    passwordVariable: 'PASSWORD',
-                                    usernameVariable: 'PASSWORD_NAME'),
+                                    passwordVariable: 'PASSWORD'),
                             ]
                         ) {
                             sh '''

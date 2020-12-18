@@ -2,6 +2,6 @@
 __pycache__/
 .vscode/
 step-commands/
-/models
+*.pkl
 /raw
 .ssh/
