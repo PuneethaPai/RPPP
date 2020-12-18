@@ -29,11 +29,15 @@ pipeline {
                     steps {
                         withCredentials(
                             [
-                                file(credentialsId: 'config.local', variable: 'config.local')]
+                                file(credentialsId: 'config.local', variable: 'LOCAL_CONFIG')
+                            ]
                         ) {
                             sh '''
                                 env
-                                echo $config.local
+                                cp $LOCAL_CONFIG .dvc/config.local
+                                ls -la .dvc/
+                                cat .dvc/config
+                                cat .dvc/config.local
                             '''
 
                             // sh "echo ${env.PASSWORD}"
