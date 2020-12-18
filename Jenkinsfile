@@ -33,10 +33,11 @@ pipeline {
                             ]
                         ) {
                             sh '''
+                                set +x
                                 env
                                 echo $LOCAL_CONFIG
                                 cat $LOCAL_CONFIG
-                                ln .dvc/config.local $LOCAL_CONFIG
+                                ln -sf $LOCAL_CONFIG .dvc/config.local
                                 ls -la .dvc/
                                 cat .dvc/config
                                 cat .dvc/config.local
