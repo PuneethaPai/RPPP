@@ -31,20 +31,16 @@ pipeline {
                             [
                                 usernamePassword(
                                     credentialsId: 'PASSWORD',
-                                    passwordVariable: 'PASSWORD'),
+                                    passwordVariable: 'PASSWORD',
+                                    usernameVariable: 'USER_NAME'),
                             ]
                         ) {
                             sh '''
                                 dvc remote modify origin --local auth basic
-                                dvc remote modify origin --local user puneethp
+                                dvc remote modify origin --local user $USER_NAME
                                 dvc remote modify origin --local password $PASSWORD
                                 dvc pull -r origin
                             '''
-
-                            // sh "echo ${env.PASSWORD}"
-                            // sh 'dvc remote modify origin --local auth basic'
-                            // sh 'dvc remote modify origin --local user puneethp'
-                            // sh "dvc remote modify origin --local password ${env.PASSWORD}"
                         }
                     }
                 }
