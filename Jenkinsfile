@@ -29,18 +29,16 @@ pipeline {
                     steps {
                         withCredentials(
                             [
-                                file(credentialsId: 'config.local', variable: 'LOCAL_CONFIG')
+                                usernamePassword(
+                                    credentialsId: 'PASSWORD',
+                                    passwordVariable: 'PASSWORD',
+                                    usernameVariable: 'PASSWORD_NAME'),
                             ]
                         ) {
                             sh '''
-                                set +x
-                                env
-                                echo $LOCAL_CONFIG
-                                cat $LOCAL_CONFIG
-                                ln -sf $LOCAL_CONFIG .dvc/config.local
-                                ls -la .dvc/
-                                cat .dvc/config
-                                cat .dvc/config.local
+                                dvc remote modify origin --local auth basic
+                                dvc remote modify origin --local user puneethp
+                                dvc remote modify origin --local password $PASSWORD
                                 sh 'dvc pull -r origin'
                             '''
 
