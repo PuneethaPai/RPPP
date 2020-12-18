@@ -71,9 +71,9 @@ pipeline {
                         sh 'cat dvc.lock'
                         sh 'dvc push -r jenkins_local'
                         sh 'dvc push -r origin'
-                        sh "rm -r /client_wip/repo/${env.CHANGE_BRANCH} || echo 'All clean'"
-                        sh "mkdir -p /client_wip/repo/${env.CHANGE_BRANCH}"
-                        sh "cp -Rf . /client_wip/repo/${env.CHANGE_BRANCH}"
+                        sh "rm -r /extras/RPPP/repo/${env.CHANGE_BRANCH} || echo 'All clean'"
+                        sh "mkdir -p /extras/RPPP/repo/${env.CHANGE_BRANCH}"
+                        sh "cp -Rf . /extras/RPPP/repo/${env.CHANGE_BRANCH}"
                     }
                 }
             }
