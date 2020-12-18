@@ -7,11 +7,11 @@ make_data:
   - path: remote://remote-wfs/rML-raw-data.csv
     md5: 15ae93ba7e913bcad890c2461048a9c9
 eval:
-  cmd: python3 evaluate.py
+  cmd: python3 src/evaluate.py
   deps:
-  - path: evaluate.py
-    md5: 9efaebadb2f8d9c95506ebcfc6e2ff07
-    size: 1618
+  - path: data/processed/rML-test.csv
+    md5: 629a4d0505914f5599bb94be702341b5
+    size: 2862132
   - path: general_params.yml
     md5: fd72d874a18159ce4a7855eb23ce4165
     size: 44
@@ -22,47 +22,47 @@ eval:
     md5: 99ddeb52ef95a08cb3b472d778a781b9.dir
     size: 870629
     nfiles: 2
-  - path: processed/rML-test.csv
-    md5: 629a4d0505914f5599bb94be702341b5
-    size: 2862132
+  - path: src/evaluate.py
+    md5: c0cd2b34bd7d384560d47126b2b878d9
+    size: 1672
   outs:
   - path: test_metrics.csv
-    md5: ae402acbd75ea47eac28de3de53d23ba
+    md5: 56bff7e7cb3e175bdaeee38d6a661345
     size: 355
 preprocessing:
-  cmd: python3 preprocess.py
+  cmd: python3 src/preprocess.py
   deps:
+  - path: data/raw/rML-raw-data.csv
+    md5: ce3a47e51025812d0e5d2e5914feadb7
+    size: 7361822
   - path: general_params.yml
     md5: fd72d874a18159ce4a7855eb23ce4165
     size: 44
-  - path: preprocess.py
-    md5: 4466a476b332b09650beb830030437c2
-    size: 2623
-  - path: raw/rML-raw-data.csv
-    md5: ce3a47e51025812d0e5d2e5914feadb7
-    size: 7361822
+  - path: src/preprocess.py
+    md5: 6b1cf3af3a8e62805f8d81f9e1dcd559
+    size: 2620
   outs:
-  - path: processed/rML-test.csv
+  - path: data/processed/rML-test.csv
     md5: 629a4d0505914f5599bb94be702341b5
     size: 2862132
-  - path: processed/rML-train.csv
+  - path: data/processed/rML-train.csv
     md5: 9b1f377458cc33aaa5b72a63fbb757fe
     size: 8087263
 training:
-  cmd: python3 training.py
+  cmd: python3 src/training.py
   deps:
+  - path: data/processed/rML-train.csv
+    md5: 9b1f377458cc33aaa5b72a63fbb757fe
+    size: 8087263
   - path: general_params.yml
     md5: fd72d874a18159ce4a7855eb23ce4165
     size: 44
-  - path: model_def.py
-    md5: e5510afe14965114dc29ec2f781a4db7
-    size: 2005
-  - path: processed/rML-train.csv
-    md5: 9b1f377458cc33aaa5b72a63fbb757fe
-    size: 8087263
-  - path: training.py
-    md5: cb87578e9e6ddf03440f7dc9901d6ba3
-    size: 865
+  - path: src/model_def.py
+    md5: 4edbdbb532413ab24331e9c77043824f
+    size: 1995
+  - path: src/training.py
+    md5: 37d516f8dfba72051906dc502bde441b
+    size: 870
   outs:
   - path: models
     md5: 99ddeb52ef95a08cb3b472d778a781b9.dir
@@ -72,5 +72,5 @@ training:
     md5: 2425d4cc306ef245b718ef1179191bf5
     size: 542
   - path: training_metrics.csv
-    md5: c6fa81602002eb9bc97c975c0891baa3
+    md5: 5102eace5978ea73cda41e61a639bc62
     size: 360

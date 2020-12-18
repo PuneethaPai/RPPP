@@ -35,7 +35,8 @@ def load_transform_and_eval():
     print("Loading test data and testing model...")
     for i, chunk in enumerate(
         pd.read_csv(
-            os.path.join("processed", reddit_utils.TEST_DF_PATH), chunksize=CHUNK_SIZE
+            os.path.join("data/processed", reddit_utils.TEST_DF_PATH),
+            chunksize=CHUNK_SIZE,
         )
     ):
         print(f"Testing on chunk {i+1}...")

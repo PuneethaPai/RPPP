@@ -1,20 +1,20 @@
 stages:
   preprocessing:
-    cmd: python3 preprocess.py
+    cmd: python3 src/preprocess.py
     deps:
       - general_params.yml
-      - preprocess.py
-      - raw/rML-raw-data.csv
+      - src/preprocess.py
+      - data/raw/rML-raw-data.csv
     outs:
-      - processed/rML-test.csv
-      - processed/rML-train.csv
+      - data/processed/rML-test.csv
+      - data/processed/rML-train.csv
   training:
-    cmd: python3 training.py
+    cmd: python3 src/training.py
     deps:
       - general_params.yml
-      - model_def.py
-      - processed/rML-train.csv
-      - training.py
+      - src/model_def.py
+      - data/processed/rML-train.csv
+      - src/training.py
     outs:
       - models:
           persist: true
@@ -25,13 +25,13 @@ stages:
       - training_metrics.csv:
           cache: false
   eval:
-    cmd: python3 evaluate.py
+    cmd: python3 src/evaluate.py
     deps:
-    - evaluate.py
+    - src/evaluate.py
     - general_params.yml
     - model_params.yml
     - models
-    - processed/rML-test.csv
+    - data/processed/rML-test.csv
     metrics:
     - test_metrics.csv:
         cache: false

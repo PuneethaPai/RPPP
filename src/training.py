@@ -15,7 +15,7 @@ TARGET_LABEL = params["target_col"]
 
 def load_and_train(random_state=42):
     with dagshub.dagshub_logger(metrics_path="training_metrics.csv") as logger:
-        train_data_loc = os.path.join("processed", reddit_utils.TRAIN_DF_PATH)
+        train_data_loc = os.path.join("data/processed", reddit_utils.TRAIN_DF_PATH)
         print("Initializing models...")
         model = NumCatModel(random_state=random_state)
         model.train(
