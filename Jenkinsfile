@@ -34,10 +34,13 @@ pipeline {
                         ) {
                             sh '''
                                 env
-                                cp $LOCAL_CONFIG .dvc/config.local
+                                echo $LOCAL_CONFIG
+                                cat $LOCAL_CONFIG
+                                ln .dvc/config.local $LOCAL_CONFIG
                                 ls -la .dvc/
                                 cat .dvc/config
                                 cat .dvc/config.local
+                                sh 'dvc pull -r origin'
                             '''
 
                             // sh "echo ${env.PASSWORD}"
