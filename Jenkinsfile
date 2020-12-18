@@ -66,7 +66,7 @@ pipeline {
                     steps {
                         sh 'dvc repro --dry -mP'
                         sh 'dvc repro -mP'
-                        sh "dvc metrics diff --show-md --precision 2 ${env.CHANGE_BRANCH}"
+                        sh "dvc metrics diff --show-md --precision 2 ${env.CHANGE_TARGET}"
                         sh 'cat dvc.lock'
                         sh 'dvc push -r jenkins_local'
                         sh 'dvc push -r origin'
