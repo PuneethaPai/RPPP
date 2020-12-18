@@ -1,10 +1,11 @@
 import os
 
-import yaml
 import dagshub
+import yaml
+
+import reddit_utils
 
 from model_def import NumCatModel
-import reddit_utils
 
 with open(r"./general_params.yml") as f:
     params = yaml.safe_load(f)

@@ -45,12 +45,12 @@ TEST_DF_PATH = "rML-test.csv"
 
 def calculate_metrics(y_pred, y_proba, y):
     return {
-        "roc_auc": roc_auc_score(y, y_proba),
-        "average_precision": average_precision_score(y, y_proba),
-        "accuracy": accuracy_score(y, y_pred),
-        "precision": precision_score(y, y_pred),
-        "recall": recall_score(y, y_pred),
-        "f1": f1_score(y, y_pred),
+        "roc_auc": float(roc_auc_score(y, y_proba)),
+        "average_precision": float(average_precision_score(y, y_proba)),
+        "accuracy": float(accuracy_score(y, y_pred)),
+        "precision": float(precision_score(y, y_pred)),
+        "recall": float(recall_score(y, y_pred)),
+        "f1": float(f1_score(y, y_pred)),
     }
 
 
