@@ -16,13 +16,13 @@ stages:
       - data/processed/rML-train.csv
       - src/training.py
     outs:
-      - models:
+      - models/model.pkl:
           persist: true
       - params.yml:
           cache: false
           persist: true
     metrics:
-      - training_metrics.csv:
+      - models/metrics/train.yaml:
           cache: false
   eval:
     cmd: python3 src/evaluate.py
@@ -30,8 +30,8 @@ stages:
     - src/evaluate.py
     - general_params.yml
     - model_params.yml
-    - models
+    - models/model.pkl
     - data/processed/rML-test.csv
     metrics:
-    - test_metrics.csv:
+    - models/metrics/test.yaml:
         cache: false

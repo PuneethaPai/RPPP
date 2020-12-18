@@ -5,6 +5,8 @@ import os
 import pandas as pd
 from sklearn.linear_model import SGDClassifier
 import reddit_utils
+from utilities import dump_yaml
+from pathlib import Path
 
 
 class NumCatModel:
@@ -36,7 +38,9 @@ class NumCatModel:
                 y = np.concatenate((y, chunk[target]))
 
             metrics = reddit_utils.calculate_metrics(y_pred, y_proba, y)
-            logger.log_metrics(reddit_utils.prepare_log(metrics, "train"))
+            metrics_path = Path("models/metrics/")
+            metrics_path.mkdir(parents=True, exist_ok=True)
+            dump_yaml(reddit_utils.prepare_log(metrics), metrics_path / "train.yaml")
 
     def save_model(self, logger=None):
         os.makedirs(reddit_utils.MODELS_DIR, exist_ok=True)

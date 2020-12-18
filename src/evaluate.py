@@ -1,12 +1,13 @@
-import dagshub
 import os
+from pathlib import Path
+
+import joblib
+import numpy as np
 import pandas as pd
 import yaml
 
-import numpy as np
-import joblib
-
 import reddit_utils
+from utilities import dump_yaml
 
 with open(r"./general_params.yml") as f:
     params = yaml.safe_load(f)
@@ -49,10 +50,8 @@ def load_transform_and_eval():
     metrics = reddit_utils.calculate_metrics(y_pred, y_proba, y)
 
     print("Logging metrics...")
-    with dagshub.dagshub_logger(
-        should_log_hparams=False, metrics_path="test_metrics.csv"
-    ) as logger:
-        logger.log_metrics(reddit_utils.prepare_log(metrics, "test"))
+    metrics_path = Path("models/metrics/test.yaml")
+    dump_yaml(reddit_utils.prepare_log(metrics), metrics_path)
 
 
 if __name__ == "__main__":
