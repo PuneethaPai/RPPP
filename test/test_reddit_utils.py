@@ -1,4 +1,3 @@
-import pytest
 from src.reddit_utils import calculate_metrics
 
 
