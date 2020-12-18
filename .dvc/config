@@ -8,3 +8,5 @@
     url = https://dagshub.com/Dean/RPPP.dvc
 ['remote "origin"']
     url = https://dagshub.com/puneethp/RPPP.dvc
+['remote "jenkins_local"']
+    url = /extras/RPPP/dvc_cache
