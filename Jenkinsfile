@@ -66,12 +66,14 @@ pipeline {
                     steps {
                         sh 'dvc repro --dry -mP'
                         sh 'dvc repro -mP'
+                        sh 'git branch -a'
                         sh "dvc metrics diff --show-md --precision 2 ${env.CHANGE_TARGET}"
                         sh 'cat dvc.lock'
                         sh 'dvc push -r jenkins_local'
                         sh 'dvc push -r origin'
-                        sh "rm -r /extras/RPPP/repo/${env.CHANGE_BRANCH} || echo 'All clean'"
-                        sh "cp -Rf . /extras/RPPP/repo/${env.CHANGE_BRANCH}"
+                        sh "rm -r /client_wip/repo/${env.CHANGE_BRANCH} || echo 'All clean'"
+                        sh "mkdir -p /client_wip/repo/${env.CHANGE_BRANCH}"
+                        sh "cp -Rf . /client_wip/repo/${env.CHANGE_BRANCH}"
                     }
                 }
             }
