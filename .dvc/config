@@ -1,5 +1,7 @@
 [cache]
     gs = dvc-cache
+[core]
+    remote = origin
 ['remote "dvc-cache"']
     url = gs://reddit-remote-wfs-example/dvc-cache/
 ['remote "dean"']

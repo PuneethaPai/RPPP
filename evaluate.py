@@ -34,7 +34,9 @@ def load_transform_and_eval():
     y = np.array([])
     print("Loading test data and testing model...")
     for i, chunk in enumerate(
-        pd.read_csv(os.path.join('processed', reddit_utils.TEST_DF_PATH), chunksize=CHUNK_SIZE)
+        pd.read_csv(
+            os.path.join("processed", reddit_utils.TEST_DF_PATH), chunksize=CHUNK_SIZE
+        )
     ):
         print(f"Testing on chunk {i+1}...")
         df_X = chunk[COLS_FOR_EVAL]
@@ -46,7 +48,9 @@ def load_transform_and_eval():
     metrics = reddit_utils.calculate_metrics(y_pred, y_proba, y)
 
     print("Logging metrics...")
-    with dagshub.dagshub_logger(should_log_hparams=False, metrics_path='test_metrics.csv') as logger:
+    with dagshub.dagshub_logger(
+        should_log_hparams=False, metrics_path="test_metrics.csv"
+    ) as logger:
         logger.log_metrics(reddit_utils.prepare_log(metrics, "test"))
 
 

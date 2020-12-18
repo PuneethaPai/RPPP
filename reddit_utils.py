@@ -1,5 +1,4 @@
 import os
-import re
 
 from sklearn.metrics import (
     roc_auc_score,
@@ -32,6 +31,8 @@ CAT_COL_NAMES = [
 TEXT_COL_NAME = ["title_and_body"]
 
 # ----- Paths -----
+
+
 MODELS_DIR = "./models"
 TFIDF_PATH = MODELS_DIR + "/tfidf.pkl"
 MODEL_PATH = MODELS_DIR + "/model.pkl"
@@ -40,6 +41,8 @@ TRAIN_DF_PATH = "rML-train.csv"
 TEST_DF_PATH = "rML-test.csv"
 
 # ----- Functions -----
+
+
 def calculate_metrics(y_pred, y_proba, y):
     return {
         "roc_auc": roc_auc_score(y, y_proba),

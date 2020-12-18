@@ -21,11 +21,11 @@ class NumCatModel:
             df_X = chunk[cols_to_train]
             self.model.partial_fit(df_X, df_y, classes=np.array([0, 1]))
 
-        if logger != None:
+        if logger:
             y_proba = np.array([])
             y_pred = np.array([])
             y = np.array([])
-            print(f"Calculating training metrics...")
+            print("Calculating training metrics...")
             for i, chunk in enumerate(pd.read_csv(data_loc, chunksize=chunksize)):
                 df_y = chunk[target]
                 cols_to_train = reddit_utils.NUM_COL_NAMES + reddit_utils.CAT_COL_NAMES
@@ -48,4 +48,3 @@ class NumCatModel:
             logger.log_hyperparams(
                 reddit_utils.prepare_log(self.model.get_params(), "model")
             )
-
