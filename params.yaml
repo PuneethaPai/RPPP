@@ -1,3 +1,12 @@
+pre_process:
+  chunk_size: 5000
+  target_col: is_top_decile
+
+train:
+  loss: log
+  use_text_cols: false
+  use_number_category_cols: true
+
 feature_type: numerical + categorical
 model__alpha: 0.0001
 model__average: false

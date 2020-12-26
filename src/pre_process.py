@@ -1,12 +1,13 @@
 import os
+
 import pandas as pd
-from sklearn.model_selection import train_test_split
 import yaml
+from sklearn.model_selection import train_test_split
 
 import reddit_utils
+from utilities import read_yaml
 
-with open(r"./general_params.yml") as f:
-    params = yaml.safe_load(f)
+params = read_yaml("params.yaml", "pre_process")
 
 CHUNK_SIZE = params["chunk_size"]
 TARGET_LABEL = params["target_col"]

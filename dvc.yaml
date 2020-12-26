@@ -1,37 +1,36 @@
 stages:
-  preprocessing:
-    cmd: python3 src/preprocess.py
+  pre_process:
+    cmd: python3 src/pre_process.py
     deps:
-      - general_params.yml
-      - src/preprocess.py
+      - src/pre_process.py
       - data/raw/rML-raw-data.csv
+    params:
+      - pre_process
     outs:
       - data/processed/rML-test.csv
       - data/processed/rML-train.csv
-  training:
-    cmd: python3 src/training.py
+  train:
+    cmd: python3 src/train.py
     deps:
-      - general_params.yml
       - src/model_def.py
       - data/processed/rML-train.csv
-      - src/training.py
+      - src/train.py
+    params:
+      - train
     outs:
-      - models/model.pkl:
-          persist: true
-      - params.yml:
-          cache: false
-          persist: true
+      - models/model.pkl
     metrics:
       - models/metrics/train.yaml:
           cache: false
   eval:
     cmd: python3 src/evaluate.py
     deps:
-    - src/evaluate.py
-    - general_params.yml
-    - model_params.yml
-    - models/model.pkl
-    - data/processed/rML-test.csv
+      - src/evaluate.py
+      - models/model.pkl
+      - data/processed/rML-test.csv
+    params:
+      - pre_process
+      - train
     metrics:
-    - models/metrics/test.yaml:
-        cache: false
+      - models/metrics/test.yaml:
+          cache: false

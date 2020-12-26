@@ -1,54 +1,54 @@
+import os
+from pathlib import Path
+
 import joblib
 import numpy as np
-
-import os
 import pandas as pd
 from sklearn.linear_model import SGDClassifier
-import reddit_utils
-from utilities import dump_yaml
-from pathlib import Path
+
+import src.reddit_utils as r_utils
+from src.utilities import dump_yaml
 
 
 class NumCatModel:
-    def __init__(self, random_state=42):
-        self.model = SGDClassifier(loss="log", random_state=random_state)
+    def __init__(self, loss, random_state=42):
+        self.model = SGDClassifier(loss=loss, random_state=random_state)
 
-    def train(self, chunksize, data_loc, target, logger=None):
+    def train(self, chunksize, data_loc, target):
         print("Training NumCatModel...")
 
         for i, chunk in enumerate(pd.read_csv(data_loc, chunksize=chunksize)):
             print(f"Training on chunk {i+1}...")
             df_y = chunk[target]
-            cols_to_train = reddit_utils.NUM_COL_NAMES + reddit_utils.CAT_COL_NAMES
+            cols_to_train = r_utils.NUM_COL_NAMES + r_utils.CAT_COL_NAMES
             df_X = chunk[cols_to_train]
             self.model.partial_fit(df_X, df_y, classes=np.array([0, 1]))
 
-        if logger:
-            y_proba = np.array([])
-            y_pred = np.array([])
-            y = np.array([])
-            print("Calculating training metrics...")
-            for i, chunk in enumerate(pd.read_csv(data_loc, chunksize=chunksize)):
-                df_y = chunk[target]
-                cols_to_train = reddit_utils.NUM_COL_NAMES + reddit_utils.CAT_COL_NAMES
-                df_X = chunk[cols_to_train]
+        y_proba = np.array([])
+        y_pred = np.array([])
+        y = np.array([])
+        print("Calculating training metrics...")
+        for i, chunk in enumerate(pd.read_csv(data_loc, chunksize=chunksize)):
+            df_y = chunk[target]
+            cols_to_train = r_utils.NUM_COL_NAMES + r_utils.CAT_COL_NAMES
+            df_X = chunk[cols_to_train]
 
-                y_proba = np.concatenate((y_pred, self.model.predict_proba(df_X)[:, 1]))
-                y_pred = np.concatenate((y_pred, self.model.predict(df_X)))
-                y = np.concatenate((y, chunk[target]))
+            y_proba = np.concatenate((y_pred, self.model.predict_proba(df_X)[:, 1]))
+            y_pred = np.concatenate((y_pred, self.model.predict(df_X)))
+            y = np.concatenate((y, chunk[target]))
 
-            metrics = reddit_utils.calculate_metrics(y_pred, y_proba, y)
-            metrics_path = Path("models/metrics/")
-            metrics_path.mkdir(parents=True, exist_ok=True)
-            dump_yaml(reddit_utils.prepare_log(metrics), metrics_path / "train.yaml")
+        metrics = r_utils.calculate_metrics(y_pred, y_proba, y)
+        metrics_path = Path("models/metrics/")
+        metrics_path.mkdir(parents=True, exist_ok=True)
+        dump_yaml(metrics, metrics_path / "train.yaml")
 
-    def save_model(self, logger=None):
-        os.makedirs(reddit_utils.MODELS_DIR, exist_ok=True)
-        joblib.dump(self.model, reddit_utils.MODEL_PATH)
+    def save_model(self):
+        os.makedirs(r_utils.MODELS_DIR, exist_ok=True)
+        joblib.dump(self.model, r_utils.MODEL_PATH)
         # log params
-        if logger:
-            logger.log_hyperparams(feature_type="numerical + categorical")
-            logger.log_hyperparams(model_class=type(self.model).__name__)
-            logger.log_hyperparams(
-                reddit_utils.prepare_log(self.model.get_params(), "model")
-            )
+        hyper_params = dict(
+            feature_type="numerical + categorical",
+            model_class=type(self.model).__name__,
+            model=self.model.get_params(),
+        )
+        dump_yaml(hyper_params, Path("models/result.yaml"))
