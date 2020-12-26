@@ -6,29 +6,26 @@ import numpy as np
 import pandas as pd
 import yaml
 
-import reddit_utils
-from utilities import dump_yaml
+import src.reddit_utils as r_utils
+from src.utilities import dump_yaml, read_yaml
 
-with open(r"./general_params.yml") as f:
-    params = yaml.safe_load(f)
+pre_process_params = read_yaml("params.yaml", "pre_process")
+model_params = read_yaml("params.yaml", "train")
 
-with open(r"./model_params.yml") as f:
-    model_params = yaml.safe_load(f)
-
-CHUNK_SIZE = params["chunk_size"]
-TARGET_LABEL = params["target_col"]
+CHUNK_SIZE = pre_process_params["chunk_size"]
+TARGET_LABEL = pre_process_params["target_col"]
 COLS_FOR_EVAL = []
 
 if model_params["use_text_cols"]:
-    COLS_FOR_EVAL += reddit_utils.TEXT_COL_NAME
+    COLS_FOR_EVAL += r_utils.TEXT_COL_NAME
 
 if model_params["use_number_category_cols"]:
-    COLS_FOR_EVAL += reddit_utils.NUM_COL_NAMES + reddit_utils.CAT_COL_NAMES
+    COLS_FOR_EVAL += r_utils.NUM_COL_NAMES + r_utils.CAT_COL_NAMES
 
 
 def load_transform_and_eval():
     print("loading transformer and model...")
-    model = joblib.load(reddit_utils.MODEL_PATH)
+    model = joblib.load(r_utils.MODEL_PATH)
 
     y_proba = np.array([])
     y_pred = np.array([])
@@ -36,7 +33,7 @@ def load_transform_and_eval():
     print("Loading test data and testing model...")
     for i, chunk in enumerate(
         pd.read_csv(
-            os.path.join("data/processed", reddit_utils.TEST_DF_PATH),
+            os.path.join("data/processed", r_utils.TEST_DF_PATH),
             chunksize=CHUNK_SIZE,
         )
     ):
@@ -47,11 +44,11 @@ def load_transform_and_eval():
         y = np.concatenate((y, chunk[TARGET_LABEL]))
 
     print("Calculating metrics")
-    metrics = reddit_utils.calculate_metrics(y_pred, y_proba, y)
+    metrics = r_utils.calculate_metrics(y_pred, y_proba, y)
 
     print("Logging metrics...")
     metrics_path = Path("models/metrics/test.yaml")
-    dump_yaml(reddit_utils.prepare_log(metrics), metrics_path)
+    dump_yaml(metrics, metrics_path)
 
 
 if __name__ == "__main__":
