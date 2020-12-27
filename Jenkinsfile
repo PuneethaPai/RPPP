@@ -80,7 +80,7 @@ pipeline {
         stage('Commit back results') {
             when { changeRequest() }
             steps {
-                dir('/extras/RPPP/repo/$CHANGE_BRANCH') {
+                dir("/extras/RPPP/repo/${env.CHANGE_BRANCH}") {
                     sh '''
                         git branch -a
                         git status
