@@ -65,7 +65,6 @@ pipeline {
                             dvc repro --dry -mP
                             dvc repro -mP
                             git branch -a
-                            dvc metrics diff --show-md --precision 2 $CHANGE_TARGET
                             cat dvc.lock
                             dvc push -r jenkins_local
                             dvc push -r origin
@@ -73,6 +72,7 @@ pipeline {
                             mkdir -p /extras/RPPP/repo/$CHANGE_BRANCH
                             cp -Rf . /extras/RPPP/repo/$CHANGE_BRANCH
                         '''
+                        sh 'dvc metrics diff --show-md --precision 2 $CHANGE_TARGET'
                     }
                 }
             }
@@ -84,7 +84,7 @@ pipeline {
                     sh '''
                         git branch -a
                         git status
-                        if git diff --exit-code; then
+                        if ! git diff --exit-code; then
                             git add .
                             git status
                             git commit -m '$GIT_COMMIT_REV: Update dvc.lock and metrics'
