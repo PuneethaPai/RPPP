@@ -1,11 +1,10 @@
 import os
 
 import pandas as pd
-import yaml
 from sklearn.model_selection import train_test_split
 
-import reddit_utils
-from utilities import read_yaml
+import src.reddit_utils as r_utils
+from src.utilities import read_yaml
 
 params = read_yaml("params.yaml", "pre_process")
 
@@ -27,9 +26,9 @@ UNIQUE_FLAIRS = [
 
 def load_and_process_data(random_state=42):
     print("Loading data in chuncks...")
-    raw_data = os.path.join("data/raw", reddit_utils.RAW_DF_PATH)
-    processed_train = os.path.join("data/processed", reddit_utils.TRAIN_DF_PATH)
-    processed_test = os.path.join("data/processed", reddit_utils.TEST_DF_PATH)
+    raw_data = os.path.join("data/raw", r_utils.RAW_DF_PATH)
+    processed_train = os.path.join("data/processed", r_utils.TRAIN_DF_PATH)
+    processed_test = os.path.join("data/processed", r_utils.TEST_DF_PATH)
 
     for i, chunk in enumerate(pd.read_csv(raw_data, chunksize=CHUNK_SIZE)):
         print(f"Processing chunk {i + 1}...")

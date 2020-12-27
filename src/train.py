@@ -1,8 +1,5 @@
 import os
 
-import dagshub
-import yaml
-
 import src.reddit_utils as r_utils
 from src.model_def import NumCatModel
 from src.utilities import read_yaml
