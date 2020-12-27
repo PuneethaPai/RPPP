@@ -20,9 +20,11 @@ pipeline {
                 }
                 stage('Run Linting') {
                     steps {
-                        sh 'flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics'
-                        sh 'flake8 . --count --max-complexity=10 --max-line-length=127 --statistics'
-                        sh 'black . --check --diff'
+                        sh '''
+                            flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+                            flake8 . --count --max-complexity=10 --max-line-length=127 --statistics
+                            black . --check --diff
+                        '''
                     }
                 }
                 stage('Setup DVC Creds') {
@@ -46,34 +48,31 @@ pipeline {
                 }
                 stage('Sync DVC Remotes') {
                     steps {
-                        sh 'dvc status'
-                        sh 'dvc status -r jenkins_local'
-                        sh 'dvc status -r origin'
-                        script {
-                            try {
-                                sh 'dvc pull -r jenkins_local'
-                            } catch (error) {
-                                echo error.message
-                            }
-                        }
-                        echo currentBuild.result
-                        sh 'dvc pull -r origin'
-                        sh 'dvc push -r jenkins_local'
+                        sh '''
+                            dvc status
+                            dvc status -r jenkins_local
+                            dvc status -r origin
+                            dvc pull -r jenkins_local || echo 'Some files are missing in local cache!'
+                            dvc pull -r origin
+                            dvc push -r jenkins_local
+                        '''
                     }
                 }
                 stage('Update DVC Pipeline') {
                     when { changeRequest() }
                     steps {
-                        sh 'dvc repro --dry -mP'
-                        sh 'dvc repro -mP'
-                        sh 'git branch -a'
-                        sh "dvc metrics diff --show-md --precision 2 ${env.CHANGE_TARGET}"
-                        sh 'cat dvc.lock'
-                        sh 'dvc push -r jenkins_local'
-                        sh 'dvc push -r origin'
-                        sh "rm -r /extras/RPPP/repo/${env.CHANGE_BRANCH} || echo 'All clean'"
-                        sh "mkdir -p /extras/RPPP/repo/${env.CHANGE_BRANCH}"
-                        sh "cp -Rf . /extras/RPPP/repo/${env.CHANGE_BRANCH}"
+                        sh '''
+                            dvc repro --dry -mP
+                            dvc repro -mP
+                            git branch -a
+                            dvc metrics diff --show-md --precision 2 $CHANGE_TARGET
+                            cat dvc.lock
+                            dvc push -r jenkins_local
+                            dvc push -r origin
+                            rm -r /extras/RPPP/repo/$CHANGE_BRANCH || echo 'All clean'
+                            mkdir -p /extras/RPPP/repo/$CHANGE_BRANCH
+                            cp -Rf . /extras/RPPP/repo/$CHANGE_BRANCH
+                        '''
                     }
                 }
             }
