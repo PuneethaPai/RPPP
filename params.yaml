@@ -6,27 +6,3 @@ train:
   loss: log
   use_text_cols: false
   use_number_category_cols: true
-
-feature_type: numerical + categorical
-model__alpha: 0.0001
-model__average: false
-model__class_weight: null
-model__early_stopping: false
-model__epsilon: 0.1
-model__eta0: 0.0
-model__fit_intercept: true
-model__l1_ratio: 0.15
-model__learning_rate: optimal
-model__loss: log
-model__max_iter: 1000
-model__n_iter_no_change: 5
-model__n_jobs: null
-model__penalty: l2
-model__power_t: 0.5
-model__random_state: 42
-model__shuffle: true
-model__tol: 0.001
-model__validation_fraction: 0.1
-model__verbose: 0
-model__warm_start: false
-model_class: SGDClassifier
