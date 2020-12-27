@@ -91,6 +91,7 @@ pipeline {
                             git push origin HEAD:$CHANGE_BRANCH
                         else
                             echo 'Nothing to Commit!'
+                        fi
                     '''
                 }
             }
