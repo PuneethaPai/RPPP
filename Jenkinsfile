@@ -80,13 +80,18 @@ pipeline {
         stage('Commit back results') {
             when { changeRequest() }
             steps {
-                dir("/extras/RPPP/repo/${env.CHANGE_BRANCH}") {
-                    sh 'git branch -a'
-                    sh 'git status'
-                    sh 'git add .'
-                    sh 'git status'
-                    sh "git commit -m '${env.GIT_COMMIT_REV}: Update dvc.lock and metrics' || echo 'Nothing to Commit'"
-                    sh "git push origin HEAD:${env.CHANGE_BRANCH}"
+                dir('/extras/RPPP/repo/$CHANGE_BRANCH') {
+                    sh '''
+                        git branch -a
+                        git status
+                        if git diff --exit-code; then
+                            git add .
+                            git status
+                            git commit -m '$GIT_COMMIT_REV: Update dvc.lock and metrics'
+                            git push origin HEAD:$CHANGE_BRANCH
+                        else
+                            echo 'Nothing to Commit!'
+                    '''
                 }
             }
         }

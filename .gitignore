@@ -5,3 +5,4 @@ step-commands/
 *.pkl
 /raw
 .ssh/
+.pytest_cache/
