@@ -1,5 +1,5 @@
 pre_process:
-  chunk_size: 5000
+  chunk_size: 50
   target_col: is_top_decile
 
 train:
