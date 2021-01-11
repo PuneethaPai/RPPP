@@ -53,12 +53,13 @@
 
 # Prerequisite:
 
-- Setup a running Jenkins Sever setup which executes your CI pipeline. You can follow this to set it up.
+- Setup a running Jenkins Sever, which executes your CI pipeline. You can follow instructions in [JenkinsDockerSetup](https://dagshub.com/puneethp/JenkinsDockerSetup) to do so.
 - Setup end to end Machine Learning Pipeline with DVC to make you experiments reproducible and version you data/models.
 
 # Standard Jenkins pipeline for CI
 
-The reference project has been developed in Python, but the same concepts should be applicable to other language ML projects.
+The reference project has been developed in Python, but the same concepts should be applicable to other technology ML projects.
+Once you have a running Jenkins Sever and defined End-to-End experimentation ML pipeline we can integrate it with Jenkins CI/CD pipeline.
 
 ## Job setup:
 
@@ -84,7 +85,7 @@ agent {
 }
 ```
 
-Agent Dockerfile:
+Agent [Dockerfile](./Dockerfile):
 
 Here we define base image, install the required software and library dependencies.
 
