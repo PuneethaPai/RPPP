@@ -1,4 +1,3 @@
-# Create By: Ritdhwaj Singh Chandel
 FROM python:3.8
 RUN pip install --upgrade pip && \
     pip install -U setuptools==49.6.0

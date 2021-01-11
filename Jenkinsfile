@@ -41,7 +41,7 @@ pipeline {
                                 dvc remote modify origin --local auth basic
                                 dvc remote modify origin --local user $USER_NAME
                                 dvc remote modify origin --local password $PASSWORD
-                                dvc pull -r origin
+                                dvc status -r origin
                             '''
                         }
                     }
