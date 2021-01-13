@@ -40,36 +40,42 @@
 
 # TLDR
 
-- Data Science projects are unique in its own ways, but still can adapt lot of learning from Software Delivery Projects and Practices.
-- MLops is under the umberlla of Devops, addresses rituals to take models running in DS laptops to production.
-- DS pull request from DagsHub and CML from DVC addresses few neuanses of applying standard CI/CD practices to ML projects.
-- This blog talks about extending same idea to implement the same using Jenkins and DVC pipelines.
+- Data Science projects are unique in its own ways, but still can adapt lot of learning from Software Delivery Principles and Projects.
+- MLops is comes under the umberlla of Devops. It addresses, the rituals to take models running in DS laptops to production.
+- Versioning your data and models is the first step to achieve reproducible results and [DVC](https://dvc.org/) has done a great job on it.
+- Adding to it, [DS Pull Request](https://dagshub.com/docs/collaborating_on_dagshub/data_science_pull_requests/) from [DagsHub](https://dagshub.com/) and [CML](https://cml.dev/) from DVC addresses few neuanses of applying standard CI/CD practices to ML projects.
+- This blog talks about extending ideas of CML to implement using Jenkins and DVC pipelines.
+- If it's one thing, you want to get from this blog; that would be the [Jenkinsfile](./Jenkinsfile) file.
 
 # By the end of this you would be able to:
 
-- Standardize integration standard and be able to do it continuosly.
 - Setup Jenkins pipeline for your project.
+- Define end-to-end ML pipeline with DVC.
+- Standardize continuous integration practices in the team.
 - Learn a simple and elegant way of managing experiment, i.e features in DS projects.
 
 # Prerequisite:
 
 - Setup a running Jenkins Sever, which executes your CI pipeline. You can follow instructions in [JenkinsDockerSetup](https://dagshub.com/puneethp/JenkinsDockerSetup) to do so.
-- Setup end to end Machine Learning Pipeline with DVC to make you experiments reproducible and version you data/models.
+- Setup end-to-end Machine Learning Pipeline with DVC to make you experiments reproducible and version you data/models. Learn more about [dvc pipeline](https://dvc.org/doc/start/data-pipelines).
 
 # Standard Jenkins pipeline for CI
 
 The reference project has been developed in Python, but the same concepts should be applicable to other technology ML projects.
-Once you have a running Jenkins Sever and defined End-to-End experimentation ML pipeline we can integrate it with Jenkins CI/CD pipeline.
 
-## Job setup:
+The core of this blog revolves around the [Jenkinsfile](./Jenkinsfile). Stick till the end, to know the details of all moving parts. :smile:
 
-It is a good practice to define jobs, to be run inside a Docker Container.
+# Jenkins Pipeline:
 
-This enables to have an easy, maintainable, reproducible and standard setup for jobs. Also debugging environment specific issues becomes easier as we can reproduce the jobs execution env conditions in our local.
+It is a good practice to define jobs, to run inside a Docker Container.
 
-Jenkins enalbes us to define `agent`s to be a docker container, which can be brought up from an `docker image` or from a customised image defined in a `Dockerfile`. More on the same can be checked at [Using Docker with Pipeline](https://www.jenkins.io/doc/book/pipeline/docker/) section of their [Pipeline](https://www.jenkins.io/doc/book/pipeline/) documentation.
+This enables to have an easy, maintainable, reproducible and isolated job environment setup. Also debugging environment specific issues becomes easier as we can reproduce the jobs execution env anywhere.
 
-### Jenkins Agent:
+To do so Jenkins enalbes us to define `agent`s to be a docker container, which can be brought up from an `image` or from a customised image, defined in a [`Dockerfile`](./Dockerfile).
+
+More on the same can be checked at [Using Docker with Pipeline](https://www.jenkins.io/doc/book/pipeline/docker/) section of their [Pipeline](https://www.jenkins.io/doc/book/pipeline/) documentation.
+
+## Jenkins Agent:
 
 - Here we define the `agent` to be a container brought up from this [Dockerfine](./Dockerfile).
 - Repo will be mounted to `/project` path inside the container.
@@ -87,7 +93,7 @@ agent {
 
 Agent [Dockerfile](./Dockerfile):
 
-Here we define base image, install the required software and library dependencies.
+Here we define the job container's base image; install the required software and library dependencies.
 
 ```Dockerfile
 FROM python:3.8                      # Base image for our job
@@ -105,6 +111,8 @@ RUN pip install -r requirements.txt  # Installing project dependenices
 
 [.dockerignore](./.dockerignore)
 
+To help us define docker context when building the container image.
+
 ```.dockerignore
 *                    # Ignores everything
 
@@ -115,7 +123,7 @@ RUN pip install -r requirements.txt  # Installing project dependenices
 
 As we have defined our `agent`, now we can define stages in our pipeline.
 
-Here are few stages that we define in our Jeninks pipeline:
+Here are few stages that we will be defining in our Jeninks Pipeline:
 
 - Run Unit tests
 - Run Linting tests
@@ -123,9 +131,9 @@ Here are few stages that we define in our Jeninks pipeline:
   - Setup DVC remote connection
   - Sync DVC remotes
   - On Pull Request
-    - Execute DVC experiment/pipeline end-to-end
+    - Execute end-to-end DVC experiment/pipeline
     - Compare the results
-    - Commit back the experiment to the experiment/feature branch
+    - Commit back the results to the experiment/feature branch
 
 ### Run Unit Tests:
 
@@ -159,7 +167,9 @@ stage('Run Linting') {
 
 ### Setup DVC remote connection:
 
-Once you have setup [credentials](https://www.jenkins.io/doc/book/using/using-credentials/) in Jenkins, we can use it in a stage as follows. With `dvc status -r origin` we test our connect with the remote. DVC remote informations are define in file [.dvc/config](./.dvc/config) file.
+Once you have setup [credentials](https://www.jenkins.io/doc/book/using/using-credentials/) in Jenkins, we can use it in a stage as follows.
+
+With `dvc status -r origin` we test our connect with the remote. DVC remote informations are defined in the config, [.dvc/config](./.dvc/config) file.
 
 ```Groovy
 stage('Setup DVC Creds') {
@@ -185,15 +195,15 @@ stage('Setup DVC Creds') {
 
 ### Sync DVC remotes:
 
-Before running any further DVC stanges, we would need to fetch the data and models versioned by DVC. This can be done with `dvc pull` command. But fetching files from `S3` or similar remote storages, it increases our network load, build latency and also service usages cost.
+Before running any further DVC stanges, we would need to fetch the data and models already versioned by DVC. This can be done with `dvc pull` command.
 
-To optimise this we can cache already fetched files, say from previous builds and **only fetch the diff** required for the current build.
+Everytime while we fetch files from `S3` or similar remote storages, it increases our network load, build latency and also service usages cost.
 
-We will use the mounted volume `/extras` for this and refer it by dvc remote `jenkins_local`.
+To optimise this we can cache already fetched files, say from previous builds and **only fetch the diff** required for the consequent builds.
 
-1. First we fetch cached files from `jenkins_local`.
-2. Then we fetch diff by pulling from `origin`.
-3. We then sync both the remotes, by pushing the diffs back to `jenkins_local`.
+We will use the mounted volume `/extras` for this and refer it by dvc remote `jenkins_local`. More info [.dvc/config](./.dvc/config) file.
+
+**While `origin` is our primary storage, we use `jenkins_local` as a secondary local storage!**
 
 ```Groovy
 stage('Sync DVC Remotes') {
@@ -209,3 +219,62 @@ stage('Sync DVC Remotes') {
     }
 }
 ```
+
+Explaination:
+
+1. First we fetch cached files from `jenkins_local`.
+2. Then we only fetch diffs, by pulling from `origin`.
+3. We then sync both the remotes, by pushing the diffs back to `jenkins_local`.
+
+### Update DVC Pipeline:
+
+Once you have defined [`dvc pipeline`](https://dvc.org/doc/start/data-pipelines) running your expeirment is stright forward with [`dvc repro`](https://dvc.org/doc/command-reference/repro) cmd.
+
+But the question is **When should you run your Experiments?**
+
+Should we run for:
+
+- All the commits?
+- Only for changes in, `master` branch?
+- Should we set up some manual trigger?
+- Based on commit message syntax?
+- or **On Pull request?**
+
+Let's analyze pros and cons for each of these options:
+
+| Option                               | Pros                                                         | Cons                                                                                                                  |
+| :----------------------------------- | :----------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------- |
+| For All Commits                      | - We will never miss any experiment                          | - Will increase build latency - May not be needed to be run for all commits/changes                                   |
+| Only for changes in, `master` branch | Only master branch experiments are saved                     | - Only master branch experiments are saved - "Bad" experiments or PR gets merged to master, before we could catch it. |
+| Setup a manual trigger               | We can decide when we want to run/skip experiment.           | - Automation is not complete. - There is room for manual errors.                                                      |
+| "Special" Commit message syntax      | We can decide when we want to run/skip experiment.           | - Automation is not complete. - There is room for manual errors.                                                      |
+| **On Pull Request**                  | We can run and compare experiment, before we approve the PR. | **None**                                                                                                              |
+
+```Groovy
+stage('Update DVC Pipeline') {
+    when { changeRequest() }                                            //# 1
+    steps {
+        sh '''
+            dvc repro --dry -mP
+            dvc repro -mP                                                 # 2
+            git branch -a
+            cat dvc.lock
+            dvc push -r jenkins_local                                     # 3
+            dvc push -r origin                                            # 3
+            rm -r /extras/RPPP/repo/$CHANGE_BRANCH || echo 'All clean'
+            mkdir -p /extras/RPPP/repo/$CHANGE_BRANCH
+            cp -Rf . /extras/RPPP/repo/$CHANGE_BRANCH
+        '''
+        sh 'dvc metrics diff --show-md --precision 2 $CHANGE_TARGET'    //# 4
+    }
+}
+```
+
+Explaination:
+
+`$CHANGE_BRANCH` refers to Pull request **source** and `$CHANGE_TARGET` refers to Pull request **target**
+
+1. `when { changeRequest() }` Makes sures to run this `stage` only when Pull Request is open.
+2. `dvc repro -mP` runs the pipeline end-to-end and prints the metrics at the end.
+3. `dvc push` saves the results _(data & models)_ to remote storages.
+4. `dvc metrics diff` compares the metrics in PR source vs PR target.
