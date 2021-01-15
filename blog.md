@@ -291,9 +291,9 @@ Once the DVC pipeline is run, it will version the experiment results and modifie
 
 When we commit this [`dvc.lock`](./dvc.lock) file into git, we can say the experiment is saved successfully.
 
-For a given git commit, looking at [`dvc.lock`](./dvc.lock) file, DVC will understand which versions of files to be loaded from the [cache](./.dvc/cache). We can checkout that perticular version by [`dvc checkout`](https://dvc.org/doc/command-reference/checkout) cmd.
+This is important because, for a given git commit, looking at [`dvc.lock`](./dvc.lock) file, DVC will understand which versions of files to be loaded from the [cache](./.dvc/cache). We can checkout that perticular version by [`dvc checkout`](https://dvc.org/doc/command-reference/checkout) cmd.
 
-Now in this stage `Commit back Results` all we have to do is check if [`dvc.lock`](./dvc.lock) file got modified?, then commit and push it to our `feature/experiment` branch.
+Now in this stage `Commit back Results`; all we have to do is, check if [`dvc.lock`](./dvc.lock) file got modified?. If yes, then commit and push it to our Git `feature/experiment` branch.
 
 ```Groovy
 stage('Commit back results') {
@@ -320,7 +320,7 @@ stage('Commit back results') {
 Explaination:
 
 1. `git diff --exit-code` to check if there are un-committed changes.
-2. `git commit -m '$GIT_COMMIT_REV: ...` to commit with reference to parent commit `$GIT_COMMIT_REV`. This helps us also understand for which user commit the experiment was run by our Jenkins Pipeline.
+2. `git commit -m '$GIT_COMMIT_REV: ...'` to commit with reference to parent commit `$GIT_COMMIT_REV`. This helps us also understand for which user commit the experiment was run by our Jenkins Pipeline.
 3. `git push origin HEAD:$CHANGE_BRANCH` to push to our experiment/feature branch saved in environment variable `$CHANGE_BRANCH`.
 4. Else part to print there was nothing to commit. This means the DVC pipeline is already up to date.
 
@@ -328,42 +328,69 @@ Explaination:
 
 ## Using Jenkins for Remote Training:
 
-There are various reasons why you would want to do remote training of your models. Some of them for examples:
+There are various reasons why you would want to do remote training of your models. Some of them; for example are:
 
 - Everyone loves automation.
-- You want to schedule training job and forget it; then get notified with results.
 - Your model training can be time consuming and meanwhile you are better off doing something else.
+- You want to schedule training job and forget it; then get notified with results, when the job is complete.
 - GPU's or compute needs for the training is not present in your local development environment.
-- You are better off running training job closer to the data source, which eliminates costly data transfers storage to job environment,
+- To eliminates costly data transfers between storage to job environment, you want to run training job as close to the data source as possible.
 - Due to WFH and low network bandwidth constraints, you want to work on cloud instances to reduce your network load and latency.
-- and so on ...
+- and so on ... .
 
-This automation is achieved by following two stages of the pipeline:
+This automation is achievable, with following two stages of the pipeline:
 
 1. [Update DVC Pipeline](#Update-DVC-Pipeline)
 2. [Commit back Results](#Commit-back-Results)
 
-All you need to do is define new experiment in a branch; either by changing `code/model-algo`, `data`, `params`, or some `dependency`. As long as it can trigger `dvc pipeline` execution, **Jenkins+DVC** will execute the experiment for you.
+All you need to do is define your new experiment in a branch; either by changing `code`, (i.e `data-processing`, `model-algorithm`, etc), `data`, `params`, or some `dependency`.
 
-Once you make a Pull Request from your experiment branch to a target branch Jenkins will run `dvc pipeline` for you.
+As long as it can trigger `dvc pipeline` execution, **Jenkins and DVC** will execute the experiment for you.
+
+Once you make a Pull Request from your experiment branch to a target branch Jenkins will run the above two stages.
 
 ### Checking Results:
 
-Jenkins will commit the results _(metrics to Git and data/models to DVC)_ back. You can check them as:
+Jenkins will commit the results _(metrics to Git and data/models to DVC)_ back. You can check them as follows:
 
 ```bash
 git pull origin {feature/experiment branch} --rebase  # 1: Fetches jenkins commit, i.e metadata (metrics and dvc.lock file).
 dvc pull origin                                       # 2: Now you fetch the data/models from DVC storage.
 ```
 
-Now you have lates metrics, data and models which Jenkins produced for you.
+Now you have latest metrics, data and models; which Jenkins produced for you.
 
 _**Ignoring Experiment**_:
 
 Sometimes you may want to ignore the current execution of experiment.
 
-All you need to do in such case is to **ignore the commit from Jenkins User and force-push different change**.
+All you need to do in such case is to **ignore the commit from Jenkins and force-push different change**.
 
 ```bash
 git push origin {feature/experiment branch} --force
 ```
+
+## Enhanced Pull Request Review Process:
+
+Data Science projects are more dynamic in nature from Software Delivery projects. This is becasue in DS project along with factors that influence Software Delivery projects; some pivotal decisions; and set of next steps can be influenced by many underlying factors. To name a few:
+
+- Quality and volume of Data
+- Data cleaning/processing steps
+- Model complexity and explainability
+- Technical and Business Metrics
+- etc along with factors that influence Software Delivery projects.
+
+Hence while in Pull Request review, it is not sufficient to "say" that, the build is green, all tests are passing, etc.
+
+We should dig deep and understand the changes in data/model better. Most importantly we should validate, does our fundamental assumption/hypothesis on data still holds true or not.
+
+We have already seen some of the factors, which influence DS projects. We should keep them in mind when doing PR review.
+
+Basically for every Pull request first we should verify if the build is green. i.e (all tests are passing, linting standards are followed, etc). But as we know, that code review + build status is not sufficient. We should also be able to:
+
+- **Compare changes in data/models:** Checking changes in meta data files created by DVC, **we would only be able to name which data/model files changed**. But we can hardly differentiate, if the change is a good/bad one. **I call it a black box comparison**.
+- **Compare metrics diff's between those two branches:** We can use `dvc metrics diff {source} {target}`. This will show us the metrics of latest experiment from these branches and also the difference in value between them. **I call it a first step towards transparency**.
+
+We will be achieving the same with [Update DVC Pipeline](#Update-DVC-Pipeline) stage defined in our pipeline.
+
+To help us with better PR review for DS projects, and also apply learnings from standard practices in software delivery; [DagsHub](https://dagshub.com/)'s has developed [Data Science Pull Request](https://dagshub.com/docs/feature_updates/#data-science-pull-requests) and [DVC](https://dvc.org/) has developed [CML](https://cml.dev/). They have addressed several neuanses that differentiates DS projects from Software projects. Do check them out to get more ideas on how to achieve more transparent and informed PR reveiw.
