@@ -323,3 +323,47 @@ Explaination:
 2. `git commit -m '$GIT_COMMIT_REV: ...` to commit with reference to parent commit `$GIT_COMMIT_REV`. This helps us also understand for which user commit the experiment was run by our Jenkins Pipeline.
 3. `git push origin HEAD:$CHANGE_BRANCH` to push to our experiment/feature branch saved in environment variable `$CHANGE_BRANCH`.
 4. Else part to print there was nothing to commit. This means the DVC pipeline is already up to date.
+
+# Use Cases:
+
+## Using Jenkins for Remote Training:
+
+There are various reasons why you would want to do remote training of your models. Some of them for examples:
+
+- Everyone loves automation.
+- You want to schedule training job and forget it; then get notified with results.
+- Your model training can be time consuming and meanwhile you are better off doing something else.
+- GPU's or compute needs for the training is not present in your local development environment.
+- You are better off running training job closer to the data source, which eliminates costly data transfers storage to job environment,
+- Due to WFH and low network bandwidth constraints, you want to work on cloud instances to reduce your network load and latency.
+- and so on ...
+
+This automation is achieved by following two stages of the pipeline:
+
+1. [Update DVC Pipeline](#Update-DVC-Pipeline)
+2. [Commit back Results](#Commit-back-Results)
+
+All you need to do is define new experiment in a branch; either by changing `code/model-algo`, `data`, `params`, or some `dependency`. As long as it can trigger `dvc pipeline` execution, **Jenkins+DVC** will execute the experiment for you.
+
+Once you make a Pull Request from your experiment branch to a target branch Jenkins will run `dvc pipeline` for you.
+
+### Checking Results:
+
+Jenkins will commit the results _(metrics to Git and data/models to DVC)_ back. You can check them as:
+
+```bash
+git pull origin {feature/experiment branch} --rebase  # 1: Fetches jenkins commit, i.e metadata (metrics and dvc.lock file).
+dvc pull origin                                       # 2: Now you fetch the data/models from DVC storage.
+```
+
+Now you have lates metrics, data and models which Jenkins produced for you.
+
+_**Ignoring Experiment**_:
+
+Sometimes you may want to ignore the current execution of experiment.
+
+All you need to do in such case is to **ignore the commit from Jenkins User and force-push different change**.
+
+```bash
+git push origin {feature/experiment branch} --force
+```
