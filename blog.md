@@ -69,17 +69,17 @@ The core of this blog revolves around the [Jenkinsfile](./Jenkinsfile). Stick ti
 
 It is a good practice to define jobs, to run inside a Docker Container.
 
-This enables to have an easy, maintainable, reproducible and isolated job environment setup. Also debugging environment specific issues becomes easier as we can reproduce the jobs execution env anywhere.
+This enables to have an easy, maintainable, reproducible and isolated job environment setup. Also debugging environment specific issues becomes easier as we can reproduce the jobs execution env conditions anywhere.
 
-To do so Jenkins enalbes us to define `agent`s to be a docker container, which can be brought up from an `image` or from a customised image, defined in a [`Dockerfile`](./Dockerfile).
+To do so Jenkins enalbes us to define `agent`'s to be a docker container; which can be brought up from an `image` or from a customised image, defined in a [`Dockerfile`](./Dockerfile).
 
 More on the same can be checked at [Using Docker with Pipeline](https://www.jenkins.io/doc/book/pipeline/docker/) section of their [Pipeline](https://www.jenkins.io/doc/book/pipeline/) documentation.
 
+In next section, we will go through how we have defined our JenkinsAgent.
+
 ## Jenkins Agent:
 
-- Here we define the `agent` to be a container brought up from this [Dockerfine](./Dockerfile).
-- Repo will be mounted to `/project` path inside the container.
-- We have also mounted `/extras` volume to cache any files, between multiple job runs.
+Here we define the `agent` to be a container brought up from this [Dockerfine](./Dockerfile).
 
 Agent Definition:
 
@@ -90,6 +90,12 @@ agent {
     }
 }
 ```
+
+Details:
+
+- Repo has been mounted inside the container to `/project`.
+- `-w /project` make sures that all our pipeline stage commands are executed inside our repo directory.
+- We have also mounted `/extras` volume to cache any files, between multiple job runs. This will help in reducing build latency. For more info check [Sync DVC remotes](#Sync-DVC-remotes) pipeline stage.
 
 Agent [Dockerfile](./Dockerfile):
 
@@ -116,12 +122,12 @@ To help us define docker context when building the container image.
 ```.dockerignore
 *                    # Ignores everything
 
-!requirements.txt    # except requirements.txt file
+!requirements.txt    # except requirements.txt file ;)
 ```
 
-## Stages
+In next section we will be defining stages in our pipeline.
 
-As we have defined our `agent`, now we can define stages in our pipeline.
+## Stages
 
 Here are few stages that we will be defining in our Jeninks Pipeline:
 
@@ -137,7 +143,7 @@ Here are few stages that we will be defining in our Jeninks Pipeline:
 
 ### Run Unit Tests:
 
-We have defined our test cases in [test folder](./test) and using [pytest](https://docs.pytest.org/en/latest/) to run them for us.
+We have defined all our test cases in the [test folder](./test) and using [pytest](https://docs.pytest.org/en/latest/) to run them for us.
 
 ```Groovy
 stage('Run Unit Test') {
@@ -149,7 +155,7 @@ stage('Run Unit Test') {
 
 ### Run Linting Test:
 
-For linting check as standard practice we use [flake8](https://flake8.pycqa.org/en/latest/) and [black](https://black.readthedocs.io/en/stable/).
+For linting check, as standard practice we will use [flake8](https://flake8.pycqa.org/en/latest/) and [black](https://black.readthedocs.io/en/stable/).
 
 ```Groovy
 stage('Run Linting') {
@@ -168,8 +174,6 @@ stage('Run Linting') {
 ### Setup DVC remote connection:
 
 Once you have setup [credentials](https://www.jenkins.io/doc/book/using/using-credentials/) in Jenkins, we can use it in a stage as follows.
-
-With `dvc status -r origin` we test our connect with the remote. DVC remote informations are defined in the config, [.dvc/config](./.dvc/config) file.
 
 ```Groovy
 stage('Setup DVC Creds') {
@@ -193,17 +197,19 @@ stage('Setup DVC Creds') {
 }
 ```
 
+With `dvc status -r origin` we test our connect with the remote. DVC remote informations are defined in the config, [.dvc/config](./.dvc/config) file.
+
 ### Sync DVC remotes:
 
-Before running any further DVC stanges, we would need to fetch the data and models already versioned by DVC. This can be done with `dvc pull` command.
+Before running any further DVC stanges, we would need to fetch already versioned data and models files from DVC. This can be done with `dvc pull` command.
 
-Everytime while we fetch files from `S3` or similar remote storages, it increases our network load, build latency and also service usages cost.
+Everytime while we fetch DVC versioned files from `S3` or similar remote storages, it increases our network load, build latency and also service usages cost.
 
-To optimise this we can cache already fetched files, say from previous builds and **only fetch the diff** required for the consequent builds.
+To optimise this we can cache already fetched files, say from previous builds. Then in consequent builds we can **only fetch the required diff**.
 
 We will use the mounted volume `/extras` for this and refer it by dvc remote `jenkins_local`. More info [.dvc/config](./.dvc/config) file.
 
-**While `origin` is our primary storage, we use `jenkins_local` as a secondary local storage!**
+**While `origin` is our primary storage, we use `jenkins_local` as a secondary local storage! :exploading_head:**
 
 ```Groovy
 stage('Sync DVC Remotes') {
@@ -223,32 +229,32 @@ stage('Sync DVC Remotes') {
 Explaination:
 
 1. First we fetch cached files from `jenkins_local`.
-2. Then we only fetch diffs, by pulling from `origin`.
+2. Then we only fetch the required diffs, by pulling from `origin`.
 3. We then sync both the remotes, by pushing the diffs back to `jenkins_local`.
 
 ### Update DVC Pipeline:
 
-Once you have defined [`dvc pipeline`](https://dvc.org/doc/start/data-pipelines) running your expeirment is stright forward with [`dvc repro`](https://dvc.org/doc/command-reference/repro) cmd.
+Once you have defined [`dvc pipeline`](https://dvc.org/doc/start/data-pipelines) running your expeirment is stright forward with [`dvc repro`](https://dvc.org/doc/command-reference/repro) cmd. Every run of your dvc pipeline _can potentially create_ new versions of data, models and metrics.
 
-But the question is **When should you run your Experiments?**
+Hence the question is **When should you run your Experiments?**
 
 Should we run for:
 
 - All the commits?
 - Only for changes in, `master` branch?
 - Should we set up some manual trigger?
-- Based on commit message syntax?
+- Based on "special" commit message syntax?
 - or **On Pull request?**
 
 Let's analyze pros and cons for each of these options:
 
-| Option                               | Pros                                                         | Cons                                                                                                                  |
-| :----------------------------------- | :----------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------- |
-| For All Commits                      | - We will never miss any experiment                          | - Will increase build latency - May not be needed to be run for all commits/changes                                   |
-| Only for changes in, `master` branch | Only master branch experiments are saved                     | - Only master branch experiments are saved - "Bad" experiments or PR gets merged to master, before we could catch it. |
-| Setup a manual trigger               | We can decide when we want to run/skip experiment.           | - Automation is not complete. - There is room for manual errors.                                                      |
-| "Special" Commit message syntax      | We can decide when we want to run/skip experiment.           | - Automation is not complete. - There is room for manual errors.                                                      |
-| **On Pull Request**                  | We can run and compare experiment, before we approve the PR. | **None**                                                                                                              |
+| Options                              | Pros                                                                                                                      | Cons                                                                                                                                                    |
+| :----------------------------------- | :------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| For All Commits                      | We will never miss any experiment                                                                                         | This will increase build latency. May be overkill to run for all commits/changes                                                                        |
+| Only for changes in, `master` branch | Only master branch experiments are saved                                                                                  | Only master branch experiments are saved. "Bad" experiments can slip through the PR review process and gets merged to master, before we could catch it. |
+| Setup a manual trigger               | We can decide when we want to run/skip experiment.                                                                        | Automation is not complete. There is room for manual errors.                                                                                            |
+| "Special" Commit message syntax      | We can decide when we want to run/skip experiment.                                                                        | Automation is not complete. There is room for manual errors.                                                                                            |
+| **On Pull Request**                  | We can run and compare experiment, before we approve the PR. No "Bad" experiments can now slip through PR review process. | **None**                                                                                                                                                |
 
 ```Groovy
 stage('Update DVC Pipeline') {
@@ -272,9 +278,48 @@ stage('Update DVC Pipeline') {
 
 Explaination:
 
-`$CHANGE_BRANCH` refers to Pull request **source** and `$CHANGE_TARGET` refers to Pull request **target**
+Here `$CHANGE_BRANCH` refers to Pull request **source** branch and `$CHANGE_TARGET` refers to Pull request **target** branch.
 
-1. `when { changeRequest() }` Makes sures to run this `stage` only when Pull Request is open.
-2. `dvc repro -mP` runs the pipeline end-to-end and prints the metrics at the end.
+1. `when { changeRequest() }` Makes sures to run this `stage` only when Pull Request is open/modified/updated.
+2. `dvc repro -mP` runs the pipeline end-to-end and also prints the final metrices.
 3. `dvc push` saves the results _(data & models)_ to remote storages.
 4. `dvc metrics diff` compares the metrics in PR source vs PR target.
+
+### Commit back Results:
+
+Once the DVC pipeline is run, it will version the experiment results and modifies corresponding metadata in the [`dvc.lock`](./dvc.lock) file.
+
+When we commit this [`dvc.lock`](./dvc.lock) file into git, we can say the experiment is saved successfully.
+
+For a given git commit, looking at [`dvc.lock`](./dvc.lock) file, DVC will understand which versions of files to be loaded from the [cache](./.dvc/cache). We can checkout that perticular version by [`dvc checkout`](https://dvc.org/doc/command-reference/checkout) cmd.
+
+Now in this stage `Commit back Results` all we have to do is check if [`dvc.lock`](./dvc.lock) file got modified?, then commit and push it to our `feature/experiment` branch.
+
+```Groovy
+stage('Commit back results') {
+    when { changeRequest() }
+    steps {
+        dir("/extras/RPPP/repo/${env.CHANGE_BRANCH}") {
+            sh '''
+                git branch -a
+                git status
+                if ! git diff --exit-code; then                                   # 1
+                    git add .
+                    git status
+                    git commit -m '$GIT_COMMIT_REV: Update dvc.lock and metrics'  # 2
+                    git push origin HEAD:$CHANGE_BRANCH                           # 3
+                else
+                    echo 'Nothing to Commit!'                                     # 4
+                fi
+            '''
+        }
+    }
+}
+```
+
+Explaination:
+
+1. `git diff --exit-code` to check if there are un-committed changes.
+2. `git commit -m '$GIT_COMMIT_REV: ...` to commit with reference to parent commit `$GIT_COMMIT_REV`. This helps us also understand for which user commit the experiment was run by our Jenkins Pipeline.
+3. `git push origin HEAD:$CHANGE_BRANCH` to push to our experiment/feature branch saved in environment variable `$CHANGE_BRANCH`.
+4. Else part to print there was nothing to commit. This means the DVC pipeline is already up to date.
