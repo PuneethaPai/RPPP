@@ -62,6 +62,7 @@ pipeline {
                     when { changeRequest() }
                     steps {
                         sh '''
+                            date >> a.txt
                             dvc repro --dry -mP
                             dvc repro -mP
                             git branch -a
@@ -84,7 +85,7 @@ pipeline {
                     sh '''
                         git branch -a
                         git status
-                        if ! git diff --exit-code dvc.lock; then
+                        if ! git diff --exit-code; then
                             git add .
                             git status
                             git commit -m '$GIT_COMMIT_REV: Update dvc.lock and metrics'
