@@ -69,31 +69,30 @@ pipeline {
                             cat dvc.lock
                             dvc push -r jenkins_local
                             dvc push -r origin
-                            rm -r /extras/RPPP/repo/$CHANGE_BRANCH || echo 'All clean'
-                            mkdir -p /extras/RPPP/repo/$CHANGE_BRANCH
-                            cp -Rf . /extras/RPPP/repo/$CHANGE_BRANCH
+                            # rm -r /extras/RPPP/repo/$CHANGE_BRANCH || echo 'All clean'
+                            # mkdir -p /extras/RPPP/repo/$CHANGE_BRANCH
+                            # cp -Rf . /extras/RPPP/repo/$CHANGE_BRANCH
                         '''
                         sh 'dvc metrics diff --show-md --precision 2 $CHANGE_TARGET'
                     }
                 }
-            }
-        }
-        stage('Commit back results') {
-            when { changeRequest() }
-            steps {
-                dir("/extras/RPPP/repo/${env.CHANGE_BRANCH}") {
-                    sh '''
-                        git branch -a
-                        git status
-                        if ! git diff --exit-code; then
-                            git add .
+                stage('Commit back results') {
+                    when { changeRequest() }
+                    steps {
+                        sh '''
+                            env
+                            git branch -a
                             git status
-                            git commit -m '$GIT_COMMIT_REV: Update dvc.lock and metrics'
-                            git push origin HEAD:$CHANGE_BRANCH
-                        else
-                            echo 'Nothing to Commit!'
-                        fi
-                    '''
+                            if ! git diff --exit-code; then
+                                git add .
+                                git status
+                                git commit -m '$GIT_COMMIT_REV: Update dvc.lock and metrics'
+                                git push origin HEAD:$CHANGE_BRANCH
+                            else
+                                echo 'Nothing to Commit!'
+                            fi
+                        '''
+                    }
                 }
             }
         }
