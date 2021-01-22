@@ -91,6 +91,8 @@ pipeline {
                         ) {
                             sh '''
                                 env
+                                echo '$GIT_COMMIT_REV'
+                                echo "$GIT_COMMIT_REV"
                                 git branch -a
                                 git status
                                 if ! git diff --exit-code; then
@@ -98,7 +100,7 @@ pipeline {
                                     git status
                                     git config --local user.email $JENKINS_EMAIL
                                     git config --local user.name $JENKINS_USER_NAME
-                                    git commit -m '$GIT_COMMIT_REV: Update dvc.lock and metrics'
+                                    git commit -m "$GIT_COMMIT_REV: Update dvc.lock and metrics"
                                     git push https://$GIT_USER_NAME:$GIT_PAT@github.com/PuneethaPai/RPPP HEAD:$CHANGE_BRANCH
                                     cat ~/.git-credentials || echo 'Nothing Saved/cached'
                                 else
