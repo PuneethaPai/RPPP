@@ -3,6 +3,8 @@ pipeline {
     agent any
     environment {
         GIT_COMMIT_REV = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
+        JENKINS_USER_NAME = 'JenkinsRPPP'
+        JENKINS_EMAIL = 'jenkins@rpp.com'
     // GIT_COMMIT_MASTER = sh(returnStdout: true, script: 'git rev-parse --short master').trim()
     }
     stages {
@@ -79,19 +81,31 @@ pipeline {
                 stage('Commit back results') {
                     when { changeRequest() }
                     steps {
-                        sh '''
-                            env
-                            git branch -a
-                            git status
-                            if ! git diff --exit-code; then
-                                git add .
+                        withCredentials(
+                            [
+                                usernamePassword(
+                                    credentialsId: 'GIT_PAT',
+                                    passwordVariable: 'GIT_PAT',
+                                    usernameVariable: 'GIT_USER_NAME'),
+                            ]
+                        ) {
+                            sh '''
+                                env
+                                git branch -a
                                 git status
-                                git commit -m '$GIT_COMMIT_REV: Update dvc.lock and metrics'
-                                git push origin HEAD:$CHANGE_BRANCH
-                            else
-                                echo 'Nothing to Commit!'
-                            fi
-                        '''
+                                if ! git diff --exit-code; then
+                                    git add .
+                                    git status
+                                    git config --global user.email $JENKINS_EMAIL
+                                    git config --global user.name $JENKINS_USER_NAME
+                                    git commit -m '$GIT_COMMIT_REV: Update dvc.lock and metrics'
+                                    git push https://$GIT_USER_NAME:$GIT_PAT@github.com/PuneethaPai/RPPP HEAD:$CHANGE_BRANCH
+                                    cat ~/.git-credentials || echo 'Nothing Saved/cached'
+                                else
+                                    echo 'Nothing to Commit!'
+                                fi
+                            '''
+                        }
                     }
                 }
             }
