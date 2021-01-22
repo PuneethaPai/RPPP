@@ -96,8 +96,8 @@ pipeline {
                                 if ! git diff --exit-code; then
                                     git add .
                                     git status
-                                    git config --global user.email $JENKINS_EMAIL
-                                    git config --global user.name $JENKINS_USER_NAME
+                                    git config --local user.email $JENKINS_EMAIL
+                                    git config --local user.name $JENKINS_USER_NAME
                                     git commit -m '$GIT_COMMIT_REV: Update dvc.lock and metrics'
                                     git push https://$GIT_USER_NAME:$GIT_PAT@github.com/PuneethaPai/RPPP HEAD:$CHANGE_BRANCH
                                     cat ~/.git-credentials || echo 'Nothing Saved/cached'
