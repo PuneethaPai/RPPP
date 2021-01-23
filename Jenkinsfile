@@ -63,7 +63,6 @@ pipeline {
                     when { changeRequest() }
                     steps {
                         sh '''
-                            date >> a.txt
                             dvc repro --dry -mP
                             dvc repro -mP
                             git branch -a
