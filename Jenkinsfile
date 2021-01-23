@@ -43,7 +43,7 @@ pipeline {
                                 # dvc remote modify origin --local user $USER_NAME
                                 # dvc remote modify origin --local password $PASSWORD
                                 dvc status -r origin
-                                cat .dvc/config.local
+                                cat .dvc/config.local || echo "Nothing"
                             '''
                         }
                     }
@@ -54,10 +54,10 @@ pipeline {
                             dvc status
                             dvc status -r jenkins_local
                             dvc status -r origin
-                            dvc pull -r jenkins_local || echo 'Some files are missing in local cache!'
                             dvc pull -r origin
+                            dvc pull -r jenkins_local || echo 'Some files are missing in local cache!'
                             dvc push -r jenkins_local
-                            cat .dvc/config.local
+                            cat .dvc/config.local || echo "Nothing"
                         '''
                     }
                 }
