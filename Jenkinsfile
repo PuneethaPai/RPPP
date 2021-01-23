@@ -4,8 +4,7 @@ pipeline {
     environment {
         GIT_COMMIT_REV = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
         JENKINS_USER_NAME = 'JenkinsRPPP'
-        JENKINS_EMAIL = 'jenkins@rpp.com'
-    // GIT_COMMIT_MASTER = sh(returnStdout: true, script: 'git rev-parse --short master').trim()
+        JENKINS_EMAIL = 'jenkins@rppp.com'
     }
     stages {
         stage('Run inside Docker Image') {
@@ -71,9 +70,6 @@ pipeline {
                             cat dvc.lock
                             dvc push -r jenkins_local
                             dvc push -r origin
-                            # rm -r /extras/RPPP/repo/$CHANGE_BRANCH || echo 'All clean'
-                            # mkdir -p /extras/RPPP/repo/$CHANGE_BRANCH
-                            # cp -Rf . /extras/RPPP/repo/$CHANGE_BRANCH
                         '''
                         sh 'dvc metrics diff --show-md --precision 2 $CHANGE_TARGET'
                     }
@@ -90,9 +86,6 @@ pipeline {
                             ]
                         ) {
                             sh '''
-                                env
-                                echo '$GIT_COMMIT_REV'
-                                echo "$GIT_COMMIT_REV"
                                 git branch -a
                                 git status
                                 if ! git diff --exit-code; then
@@ -102,7 +95,6 @@ pipeline {
                                     git config --local user.name $JENKINS_USER_NAME
                                     git commit -m "$GIT_COMMIT_REV: Update dvc.lock and metrics"
                                     git push https://$GIT_USER_NAME:$GIT_PAT@github.com/PuneethaPai/RPPP HEAD:$CHANGE_BRANCH
-                                    cat ~/.git-credentials || echo 'Nothing Saved/cached'
                                 else
                                     echo 'Nothing to Commit!'
                                 fi
