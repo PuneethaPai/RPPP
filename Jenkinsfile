@@ -87,7 +87,7 @@ pipeline {
                             sh '''
                                 git branch -a
                                 git status
-                                if ! git diff --exit-code; then
+                                if ! git diff --exit-code dvc.lock; then
                                     git add .
                                     git status
                                     git config --local user.email $JENKINS_EMAIL
