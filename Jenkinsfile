@@ -30,22 +30,13 @@ pipeline {
                 }
                 stage('Setup DVC Creds') {
                     steps {
-                        withCredentials(
-                            [
-                                usernamePassword(
-                                    credentialsId: 'PASSWORD',
-                                    passwordVariable: 'PASSWORD',
-                                    usernameVariable: 'USER_NAME'),
-                            ]
-                        ) {
-                            sh '''
-                                # dvc remote modify origin --local auth basic
-                                # dvc remote modify origin --local user $USER_NAME
-                                # dvc remote modify origin --local password $PASSWORD
-                                dvc status -r origin
-                                cat .dvc/config.local || echo "Nothing"
-                            '''
-                        }
+                        sh '''
+                            
+                            
+                            
+                            dvc status -r origin
+                            cat .dvc/config.local || echo "Nothing"
+                        '''
                     }
                 }
                 stage('Sync DVC Remotes') {
@@ -64,15 +55,36 @@ pipeline {
                 stage('Update DVC Pipeline') {
                     when { changeRequest() }
                     steps {
-                        sh '''
-                            dvc repro --dry -mP
-                            dvc repro -mP
-                            git branch -a
-                            cat dvc.lock
-                            dvc push -r jenkins_local
-                            dvc push -r origin
-                        '''
-                        sh 'dvc metrics diff --show-md --precision 2 $CHANGE_TARGET'
+                        withCredentials(
+                            [
+                                usernamePassword(
+                                    credentialsId: 'PASSWORD',
+                                    passwordVariable: 'PASSWORD',
+                                    usernameVariable: 'USER_NAME'),
+                            ]
+                        ) {
+                            sh '''
+                                dvc repro --dry -mP
+                                dvc repro -mP
+                                git branch -a
+                                cat dvc.lock
+                                dvc push -r jenkins_local
+                            '''
+                            sh '''
+                                dvc remote modify origin --local auth basic
+                                dvc remote modify origin --local user $USER_NAME
+                                dvc remote modify origin --local password $PASSWORD
+                                dvc push -r origin
+                            '''
+                            sh 'dvc metrics diff --show-md --precision 2 $CHANGE_TARGET'
+                        }
+                    }
+                    post {
+                        always {
+                            sh '''
+                                rm -r .dvc/config.local || echo 'Config not found! Nothing to worry about!'
+                            '''
+                        }
                     }
                 }
                 stage('Commit back results') {
