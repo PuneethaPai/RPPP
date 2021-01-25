@@ -107,14 +107,14 @@ pipeline {
                 }
             }
         }
-        post {
-            always {
-                sh '''
-                    rm -r .dvc/config.local || echo 'Config not found! Nothing to worry about!'
-                    docker ps -a
-                    docker images
-                '''
-            }
+    }
+    post {
+        always {
+            sh '''
+                rm -r .dvc/config.local || echo 'Config not found! Nothing to worry about!'
+                docker ps -a
+                docker images
+            '''
         }
     }
 }
