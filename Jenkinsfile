@@ -10,6 +10,7 @@ pipeline {
         stage('Run inside Docker Image') {
             agent {
                 dockerfile {
+                    additionalBuildArgs  '--tag rppp:$BRANCH_NAME'
                     args "-v ${env.WORKSPACE}:/project -w /project -v /extras:/extras -e PYTHONPATH=/project"
                 }
             }
@@ -100,6 +101,15 @@ pipeline {
                             '''
                         }
                     }
+                }
+            }
+            post {
+                always {
+                    sh '''
+                        rm -r .dvc/config.local || echo 'Config not found! Nothing to worry about!'
+                        docker ps -a
+                        docker images
+                    '''
                 }
             }
         }
