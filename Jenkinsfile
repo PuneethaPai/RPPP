@@ -17,6 +17,7 @@ pipeline {
             stages {
                 stage('Run Unit Test') {
                     steps {
+                        sh 'env'
                         sh 'pytest -vvrxXs'
                     }
                 }
@@ -40,6 +41,7 @@ pipeline {
                             ]
                         ) {
                             sh '''
+                                env
                                 dvc remote modify origin --local auth basic
                                 dvc remote modify origin --local user $USER_NAME
                                 dvc remote modify origin --local password $PASSWORD
@@ -86,6 +88,7 @@ pipeline {
                             ]
                         ) {
                             sh '''
+                                env
                                 git branch -a
                                 git status
                                 if ! git diff --exit-code dvc.lock; then
@@ -103,14 +106,14 @@ pipeline {
                     }
                 }
             }
-            post {
-                always {
-                    sh '''
-                        rm -r .dvc/config.local || echo 'Config not found! Nothing to worry about!'
-                        docker ps -a
-                        docker images
-                    '''
-                }
+        }
+        post {
+            always {
+                sh '''
+                    rm -r .dvc/config.local || echo 'Config not found! Nothing to worry about!'
+                    docker ps -a
+                    docker images
+                '''
             }
         }
     }
