@@ -2,16 +2,17 @@
 pipeline {
     agent any
     environment {
-        GIT_COMMIT_REV = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
         JENKINS_USER_NAME = 'JenkinsRPPP'
         JENKINS_EMAIL = 'jenkins@rppp.com'
+        GIT_REPO = 'github.com/PuneethaPai/RPPP'
+        GIT_COMMIT_REV = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
     }
     stages {
         stage('Run inside Docker Image') {
             agent {
                 dockerfile {
                     additionalBuildArgs  '--tag rppp:$BRANCH_NAME'
-                    args "-v ${env.WORKSPACE}:/project -w /project -v /extras:/extras -e PYTHONPATH=/project"
+                    args '-v $WORKSPACE:/project -w /project -v /extras:/extras -e PYTHONPATH=/project'
                 }
             }
             stages {
@@ -94,7 +95,7 @@ pipeline {
                                     git config --local user.email $JENKINS_EMAIL
                                     git config --local user.name $JENKINS_USER_NAME
                                     git commit -m "$GIT_COMMIT_REV: Update dvc.lock and metrics"
-                                    git push https://$GIT_USER_NAME:$GIT_PAT@github.com/PuneethaPai/RPPP HEAD:$CHANGE_BRANCH
+                                    git push https://$GIT_USER_NAME:$GIT_PAT@$GIT_REPO HEAD:$CHANGE_BRANCH
                                 else
                                     echo 'Nothing to Commit!'
                                 fi
