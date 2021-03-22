@@ -1,123 +1,125 @@
-make_data:
-  cmd: python3 make_dataset.py
-  deps:
-  - path: make_dataset.py
-    md5: d700791fac216077c43596a5ea326f74
-  outs:
-  - path: remote://remote-wfs/rML-raw-data.csv
-    md5: 15ae93ba7e913bcad890c2461048a9c9
-eval:
-  cmd: python3 src/evaluate.py
-  deps:
-  - path: data/processed/rML-test.csv
-    md5: 629a4d0505914f5599bb94be702341b5
-    size: 2862132
-  - path: models/model.pkl
-    md5: 98f38f3ef55a5cfe9a0fb27a1f6616ae
-    size: 1127
-  - path: src/evaluate.py
-    md5: 5f060c468f17fc53e9a57d2681cf291a
-    size: 1590
-  params:
-    params.yaml:
-      pre_process:
-        chunk_size: 5000
-        target_col: is_top_decile
-      train:
-        loss: log
-        use_text_cols: false
-        use_number_category_cols: true
-  outs:
-  - path: models/metrics/test.yaml
-    md5: 85fa7115fb52ca48ffe9e8de88d3bee0
-    size: 102
-preprocessing:
-  cmd: python3 src/preprocess.py
-  deps:
-  - path: data/raw/rML-raw-data.csv
-    md5: ce3a47e51025812d0e5d2e5914feadb7
-    size: 7361822
-  - path: general_params.yml
-    md5: fd72d874a18159ce4a7855eb23ce4165
-    size: 44
-  - path: src/preprocess.py
-    md5: 6b1cf3af3a8e62805f8d81f9e1dcd559
-    size: 2620
-  outs:
-  - path: data/processed/rML-test.csv
-    md5: 629a4d0505914f5599bb94be702341b5
-    size: 2862132
-  - path: data/processed/rML-train.csv
-    md5: 9b1f377458cc33aaa5b72a63fbb757fe
-    size: 8087263
-training:
-  cmd: python3 src/training.py
-  deps:
-  - path: data/processed/rML-train.csv
-    md5: 9b1f377458cc33aaa5b72a63fbb757fe
-    size: 8087263
-  - path: general_params.yml
-    md5: fd72d874a18159ce4a7855eb23ce4165
-    size: 44
-  - path: src/model_def.py
-    md5: f93783b7270ebd57d40f9f6c1b8e4188
-    size: 2174
-  - path: src/training.py
-    md5: 388970c00f0c5eb6b27a9077a55584d0
-    size: 871
-  outs:
-  - path: models/metrics/train.yaml
-    md5: c4fb83687d866968d411df61c68b5d63
-    size: 103
-  - path: models/model.pkl
-    md5: 98f38f3ef55a5cfe9a0fb27a1f6616ae
-    size: 1127
-  - path: params.yml
-    md5: 2425d4cc306ef245b718ef1179191bf5
-    size: 542
-pre_process:
-  cmd: python3 src/pre_process.py
-  deps:
-  - path: data/raw/rML-raw-data.csv
-    md5: ce3a47e51025812d0e5d2e5914feadb7
-    size: 7361822
-  - path: src/pre_process.py
-    md5: e05a7f042ab6e3f81eb27e723a9668cf
-    size: 2622
-  params:
-    params.yaml:
-      pre_process:
-        chunk_size: 5000
-        target_col: is_top_decile
-  outs:
-  - path: data/processed/rML-test.csv
-    md5: 629a4d0505914f5599bb94be702341b5
-    size: 2862132
-  - path: data/processed/rML-train.csv
-    md5: 9b1f377458cc33aaa5b72a63fbb757fe
-    size: 8087263
-train:
-  cmd: python3 src/train.py
-  deps:
-  - path: data/processed/rML-train.csv
-    md5: 9b1f377458cc33aaa5b72a63fbb757fe
-    size: 8087263
-  - path: src/model_def.py
-    md5: 2f20bd7e1336a86ad3adff8b859ccffb
-    size: 1985
-  - path: src/train.py
-    md5: 8bd59fb472442f2b7851ee1e25da45cb
-    size: 750
-  params:
-    params.yaml:
-      train:
-        loss: log
-        use_text_cols: false
-        use_number_category_cols: true
-  outs:
-  - path: models/metrics/train.yaml
-    md5: c4fb83687d866968d411df61c68b5d63
-    size: 103
-  - path: models/model.pkl
-    md5: 98f38f3ef55a5cfe9a0fb27a1f6616ae
-    size: 1127
+schema: '2.0'
+stages:
+  make_data:
+    cmd: python3 make_dataset.py
+    deps:
+    - path: make_dataset.py
+      md5: d700791fac216077c43596a5ea326f74
+    outs:
+    - path: remote://remote-wfs/rML-raw-data.csv
+      md5: 15ae93ba7e913bcad890c2461048a9c9
+  eval:
+    cmd: python3 src/evaluate.py
+    deps:
+    - path: data/processed/rML-test.csv
+      md5: 629a4d0505914f5599bb94be702341b5
+      size: 2862132
+    - path: models/model.pkl
+      md5: 98f38f3ef55a5cfe9a0fb27a1f6616ae
+      size: 1127
+    - path: src/evaluate.py
+      md5: 5f060c468f17fc53e9a57d2681cf291a
+      size: 1590
+    params:
+      params.yaml:
+        pre_process:
+          chunk_size: 5000
+          target_col: is_top_decile
+        train:
+          loss: log
+          use_text_cols: false
+          use_number_category_cols: true
+    outs:
+    - path: models/metrics/test.yaml
+      md5: 85fa7115fb52ca48ffe9e8de88d3bee0
+      size: 102
+  preprocessing:
+    cmd: python3 src/preprocess.py
+    deps:
+    - path: data/raw/rML-raw-data.csv
+      md5: ce3a47e51025812d0e5d2e5914feadb7
+      size: 7361822
+    - path: general_params.yml
+      md5: fd72d874a18159ce4a7855eb23ce4165
+      size: 44
+    - path: src/preprocess.py
+      md5: 6b1cf3af3a8e62805f8d81f9e1dcd559
+      size: 2620
+    outs:
+    - path: data/processed/rML-test.csv
+      md5: 629a4d0505914f5599bb94be702341b5
+      size: 2862132
+    - path: data/processed/rML-train.csv
+      md5: 9b1f377458cc33aaa5b72a63fbb757fe
+      size: 8087263
+  training:
+    cmd: python3 src/training.py
+    deps:
+    - path: data/processed/rML-train.csv
+      md5: 9b1f377458cc33aaa5b72a63fbb757fe
+      size: 8087263
+    - path: general_params.yml
+      md5: fd72d874a18159ce4a7855eb23ce4165
+      size: 44
+    - path: src/model_def.py
+      md5: f93783b7270ebd57d40f9f6c1b8e4188
+      size: 2174
+    - path: src/training.py
+      md5: 388970c00f0c5eb6b27a9077a55584d0
+      size: 871
+    outs:
+    - path: models/metrics/train.yaml
+      md5: c4fb83687d866968d411df61c68b5d63
+      size: 103
+    - path: models/model.pkl
+      md5: 98f38f3ef55a5cfe9a0fb27a1f6616ae
+      size: 1127
+    - path: params.yml
+      md5: 2425d4cc306ef245b718ef1179191bf5
+      size: 542
+  pre_process:
+    cmd: python3 src/pre_process.py
+    deps:
+    - path: data/raw/rML-raw-data.csv
+      md5: ce3a47e51025812d0e5d2e5914feadb7
+      size: 7361822
+    - path: src/pre_process.py
+      md5: e05a7f042ab6e3f81eb27e723a9668cf
+      size: 2622
+    params:
+      params.yaml:
+        pre_process:
+          chunk_size: 5000
+          target_col: is_top_decile
+    outs:
+    - path: data/processed/rML-test.csv
+      md5: 629a4d0505914f5599bb94be702341b5
+      size: 2862132
+    - path: data/processed/rML-train.csv
+      md5: 9b1f377458cc33aaa5b72a63fbb757fe
+      size: 8087263
+  train:
+    cmd: python3 src/train.py
+    deps:
+    - path: data/processed/rML-train.csv
+      md5: 9b1f377458cc33aaa5b72a63fbb757fe
+      size: 8087263
+    - path: src/model_def.py
+      md5: 2f20bd7e1336a86ad3adff8b859ccffb
+      size: 1985
+    - path: src/train.py
+      md5: 8bd59fb472442f2b7851ee1e25da45cb
+      size: 750
+    params:
+      params.yaml:
+        train:
+          loss: log
+          use_text_cols: false
+          use_number_category_cols: true
+    outs:
+    - path: models/metrics/train.yaml
+      md5: c4fb83687d866968d411df61c68b5d63
+      size: 103
+    - path: models/model.pkl
+      md5: 98f38f3ef55a5cfe9a0fb27a1f6616ae
+      size: 1127

@@ -1,6 +1,6 @@
-accuracy: 0.623
-average_precision: 0.2313
-f1: 0.3921
-precision: 0.2876
-recall: 0.5627
-roc_auc: 0.6654
+accuracy: 0.732
+average_precision: 0.3327
+f1: 0.4984
+precision: 0.3992
+recall: 0.6632
+roc_auc: 0.7069
