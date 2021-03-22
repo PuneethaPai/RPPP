@@ -4,7 +4,7 @@ pipeline {
     environment {
         JENKINS_USER_NAME = 'JenkinsRPPP'
         JENKINS_EMAIL = 'jenkins@rppp.com'
-        GIT_REPO = 'github.com/PuneethaPai/RPPP'
+        GIT_REPO = 'dagshub.com/puneethp/RPPP'
         GIT_COMMIT_REV = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
     }
     stages {

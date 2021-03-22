@@ -1,11 +1,9 @@
-dagshub==0.1.4
 pandas==1.1.3
 numpy==1.19.2
 joblib==0.17.0
-protobuf==3.14.0
 PyYAML==5.3.1
 scikit_learn==0.23.2
 pytest<7
 flake8<4
 black
-dvc<2
+dvc<3
