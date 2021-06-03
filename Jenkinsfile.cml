@@ -11,7 +11,7 @@ pipeline {
         stage('Run inside Docker Image') {
             agent {
                 docker {
-                    image 'dvcorg/cml-py3:latest',
+                    image 'dvcorg/cml-py3:latest'
                     args '-v $WORKSPACE:/project -w /project -v /extras:/extras -e PYTHONPATH=/project'
                 }
             }
