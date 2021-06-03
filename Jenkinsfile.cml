@@ -44,7 +44,8 @@ pipeline {
                             [
                                 usernamePassword(
                                     credentialsId: 'PuneethGithubPAT',
-                                    passwordVariable: 'REPO_TOKEN'
+                                    passwordVariable: 'REPO_TOKEN',
+                                    usernameVariable: 'USER_NAME',
                                 ),
                             ]
                         ) {
