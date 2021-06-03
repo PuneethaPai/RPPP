@@ -52,7 +52,7 @@ pipeline {
                             sh '''
                             date >> report.md
                             echo $GIT_COMMIT_REV >> report.md
-                            dvc metrics --diff --show-md >> report.md
+                            dvc metrics diff --show-md --precision 2 master >> report.md
                             cml-send-comment report.md
                             '''
                         }
