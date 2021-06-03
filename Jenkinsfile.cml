@@ -10,20 +10,15 @@ pipeline {
     stages {
         stage('Run inside Docker Image') {
             agent {
-                docker {
-                    image 'dvcorg/cml-py3:latest'
+                dockerfile {
+                    additionalBuildArgs  '--tag rppp:$BRANCH_NAME'
                     args '-v $WORKSPACE:/project -w /project -v /extras:/extras -e PYTHONPATH=/project'
                 }
             }
             stages {
                 stage('Sample Stage') {
                     steps {
-                        sh '''
-                            pip install -r requirements.txt
-                            pytest -vvrxXs
-                            dvc metrics --diff --show-md >> report.md
-                            cml-send-comment --driver github report.md
-                        '''
+                        sh 'pytest -vvrxXs'
                     }
                 }
             }
@@ -32,6 +27,35 @@ pipeline {
                     sh '''
                         rm -r .dvc/config.local || echo 'Config not found! Nothing to worry about!'
                     '''
+                }
+            }
+        }
+        stage('Inside CML Container') {
+            agent {
+                docker {
+                    image 'dvcorg/cml-py3:latest'
+                    args '-v $WORKSPACE:/project -w /project -v /extras:/extras -e PYTHONPATH=/project'
+                }
+            }
+            stages {
+                stage('CML send Reort') {
+                    steps {
+                        withCredentials(
+                            [
+                                usernamePassword(
+                                    credentialsId: 'PuneethGithubPAT',
+                                    passwordVariable: 'REPO_TOKEN'
+                                ),
+                            ]
+                        ) {
+                            sh '''
+                            date >> report.md
+                            echo $GIT_COMMIT_REV >> report.md
+                            dvc metrics --diff --show-md >> report.md
+                            cml-send-comment report.md
+                            '''
+                        }
+                    }
                 }
             }
         }
